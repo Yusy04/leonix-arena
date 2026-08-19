@@ -2,45 +2,15 @@
 
 import { useState as usePb, useEffect } from "react";
 import { Icon } from "@/components/ui";
+import { CodePane } from "@/components/code/CodePane";
+import { Evaluation } from "@/components/submissions/Evaluation";
+import { SourceModal } from "@/components/submissions/SourceModal";
+import type { TestGroup } from "@/lib/types";
 
 /* ============================================================
    PROBLEM PAGE — Statement / Editorial / Submissions + editor
    Recreated from the provided mockups.
    ============================================================ */
-
-/* ---------- tiny C++ highlighter ---------- */
-function hlCpp(code: string): string[] {
-  let s = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const KW = /\b(int|long|using|namespace|return|for|while|if|else|void|const|vector|set|map|pair|sort|cin|cout|std|nullptr|main|bool|auto|struct|double|ios|sync_with_stdio|tie|begin|end|first|second|push_back|size)\b/g;
-  const NUM = /\b(\d+(?:LL|ll|u|U)?)\b/g;
-  const lines = s.split('\n').map(line => {
-    if (/^\s*\/\//.test(line)) return '<span class="c-com">' + line + '</span>';
-    if (/^\s*#/.test(line)) {
-      return line.replace(/^(\s*#[a-z]+)(.*)$/, '<span class="c-pre">$1</span><span class="c-inc">$2</span>');
-    }
-    // split on string/char literals; even indices = code, odd = literals
-    const parts = line.split(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/);
-    return parts.map((part, idx) => {
-      if (idx % 2 === 1) return '<span class="c-str">' + part + '</span>';
-      let p = part.replace(/(\/\/.*)$/, '$1'); // shield trailing comment
-      p = p.replace(KW, '<span class="c-kw">$1</span>');
-      p = p.replace(NUM, '<span class="c-num">$1</span>');
-      p = p.replace(/(.*)/, '<span class="c-com">$1</span>');
-      return p;
-    }).join('');
-  });
-  return lines;
-}
-
-function CodePane({ code, className }: { code: string; className?: string }) {
-  const lines = hlCpp(code);
-  return (
-    <div className={'cpane' + (className ? ' ' + className : '')}>
-      <div className="cpane-gutter">{lines.map((_, i) => <span key={i}>{i + 1}</span>)}</div>
-      <pre className="cpane-code">{lines.map((l, i) => <div key={i} className="cline" dangerouslySetInnerHTML={{ __html: l || '​' }} />)}</pre>
-    </div>
-  );
-}
 
 /* ---------- sample code ---------- */
 const PB_BOILER = `#include<stdio.h>
@@ -334,38 +304,13 @@ function PbSubmissions({ onSource, onEval }: { onSource: () => void; onEval: () 
 }
 
 /* ---------- MODALS ---------- */
-function SourceModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="pb-modal-scrim" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="pb-modal hud is-glow">
-        <span className="hud-corners"></span>
-        <div className="pb-modal-h">
-          <h3>Submission Source Code</h3>
-          <button className="pb-modal-x" onClick={onClose}><Icon name="close" size={18}/></button>
-        </div>
-        <div className="pb-modal-sub">
-          <span className="mono">Language: <b>C++</b></span>
-          <button className="pb-copy"><Icon name="doc" size={12}/> Copy</button>
-        </div>
-        <CodePane code={PB_SUBMISSION} className="pb-modal-code"/>
-      </div>
-    </div>
-  );
-}
-
-const PB_GROUPS = [
-  { name: 'Group 1', pts: 10, got: 10, tests: [{ n: 1, st: 'ok', t: '8 ms', m: '1.2 MB' }, { n: 2, st: 'ok', t: '11 ms', m: '1.6 MB' }] },
-  { name: 'Group 2', pts: 20, got: 20, tests: [{ n: 3, st: 'ok', t: '9 ms', m: '1.5 MB' }, { n: 4, st: 'ok', t: '14 ms', m: '1.8 MB' }, { n: 5, st: 'ok', t: '18 ms', m: '2.5 MB' }] },
-  { name: 'Group 3', pts: 12, got: 12, tests: [{ n: 6, st: 'ok', t: '22 ms', m: '4.1 MB' }] },
-  { name: 'Group 4', pts: 28, got: 0,  tests: [{ n: 7, st: 'ok', t: '35 ms', m: '5.2 MB' }, { n: 8, st: 'tle', t: '1000 ms', m: '16.6 MB' }, { n: 9, st: 'wa', t: '120 ms', m: '3.4 MB' }] },
-  { name: 'Group 5', pts: 30, got: 0,  tests: [{ n: 10, st: 'pend', t: '--', m: '--' }] },
+const PB_GROUPS: TestGroup[] = [
+  { name: 'Group 1', points: 10, awarded: 10, tests: [{ n: 1, status: 'ok', time: '8 ms', memory: '1.2 MB' }, { n: 2, status: 'ok', time: '11 ms', memory: '1.6 MB' }] },
+  { name: 'Group 2', points: 20, awarded: 20, tests: [{ n: 3, status: 'ok', time: '9 ms', memory: '1.5 MB' }, { n: 4, status: 'ok', time: '14 ms', memory: '1.8 MB' }, { n: 5, status: 'ok', time: '18 ms', memory: '2.5 MB' }] },
+  { name: 'Group 3', points: 12, awarded: 12, tests: [{ n: 6, status: 'ok', time: '22 ms', memory: '4.1 MB' }] },
+  { name: 'Group 4', points: 28, awarded: 0,  tests: [{ n: 7, status: 'ok', time: '35 ms', memory: '5.2 MB' }, { n: 8, status: 'tle', time: '1000 ms', memory: '16.6 MB' }, { n: 9, status: 'wa', time: '120 ms', memory: '3.4 MB' }] },
+  { name: 'Group 5', points: 30, awarded: 0,  tests: [{ n: 10, status: 'pend', time: '--', memory: '--' }] },
 ];
-function TestStatus({ st }: { st: string }) {
-  if (st === 'ok')   return <span className="ts ts-ok"><Icon name="check" size={13}/> Accepted</span>;
-  if (st === 'tle')  return <span className="ts ts-tle"><Icon name="clock" size={13}/> Time Limit</span>;
-  if (st === 'wa')   return <span className="ts ts-wa"><Icon name="close" size={13}/> Wrong Answer</span>;
-  return <span className="ts ts-pend"><Icon name="minus" size={13}/> Pending</span>;
-}
 function EvalModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="pb-modal-scrim" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
@@ -375,29 +320,7 @@ function EvalModal({ onClose }: { onClose: () => void }) {
           <h3>Evaluation Details</h3>
           <button className="pb-modal-x" onClick={onClose}><Icon name="close" size={18}/></button>
         </div>
-        <div className="pb-eval-note"><Icon name="target" size={13}/> Group score is awarded only if all tests in that group pass. <span className="dim">Total possible score: 100</span></div>
-        <div className="pb-eval-body">
-          {PB_GROUPS.map((g, gi) => (
-            <div key={gi} className="pb-group">
-              <div className="pb-group-h">
-                <span>{g.name} <span className="dim">({g.pts} points)</span></span>
-                <span className={'pb-group-pts' + (g.got > 0 ? '' : ' zero')}>{g.got}</span>
-              </div>
-              <div className="pb-testtable">
-                <div className="pb-testrow pb-testhead"><span>Test</span><span>Status</span><span>Time</span><span>Memory</span></div>
-                {g.tests.map(t => (
-                  <div key={t.n} className="pb-testrow">
-                    <span className="dim">Test {t.n}</span>
-                    <span><TestStatus st={t.st}/></span>
-                    <span className="mono dim">{t.t}</span>
-                    <span className="mono dim">{t.m}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="pb-total"><Icon name="trophy" size={20}/> Total Score: <b>42</b> <span className="dim">/ 100</span></div>
+        <Evaluation groups={PB_GROUPS} total={42} />
       </div>
     </div>
   );
@@ -426,7 +349,7 @@ export default function Problem() {
         </div>
         <PbEditor/>
       </div>
-      {modal === 'source' && <SourceModal onClose={() => setModal(null)}/>}
+      {modal === 'source' && <SourceModal code={PB_SUBMISSION} language="C++17" onClose={() => setModal(null)}/>}
       {modal === 'eval' && <EvalModal onClose={() => setModal(null)}/>}
     </div>
   );

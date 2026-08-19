@@ -202,6 +202,7 @@
 .ts-ok { color: var(--brand-400); }
 .ts-tle { color: #f5b461; }
 .ts-wa { color: #f0746b; }
+.ts-re { color: #f0946b; }
 .ts-pend { color: var(--fg-dim); }
 .pb-total { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 18px 22px 22px; padding: 16px; border: 1px solid var(--border-brand); border-radius: 12px; background: rgba(84,232,23,0.06); font-size: 22px; font-weight: 700; color: var(--fg-strong); box-shadow: inset 0 0 30px -12px var(--brand-glow); }
 .pb-total > svg { color: #f5b461; }
