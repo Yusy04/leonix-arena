@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52" fill="none">
+  <defs>
+    <linearGradient id="emb" x1="6" y1="4" x2="46" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a2fd94"></stop>
+      <stop offset="1" stop-color="#46c413"></stop>
+    </linearGradient>
+  </defs>
+  
+  <path d="M26 3 L45 14 L45 38 L26 49 L7 38 L7 14 Z" stroke="url(#emb)" stroke-width="2" fill="rgba(84,232,23,0.06)"></path>
+  
+  <path d="M18 15 L21 19 L26 13 L31 19 L34 15 L33 22 L19 22 Z" fill="url(#emb)"></path>
+  
+  <path d="M17 25 L16 21 L21 24 Z M35 25 L36 21 L31 24 Z" fill="url(#emb)"></path>
+  
+  <path d="M19 25 Q26 23 33 25 Q35 31 33 36 Q26 41 19 36 Q17 31 19 25 Z" stroke="url(#emb)" stroke-width="1.6" fill="none"></path>
+  
+  <circle cx="23" cy="30" r="1.7" fill="url(#emb)"></circle>
+  <circle cx="29" cy="30" r="1.7" fill="url(#emb)"></circle>
+  
+  <path d="M26 33 L24.5 35 L27.5 35 Z" fill="url(#emb)"></path>
+  <path d="M17 31 L20 31.5 M35 31 L32 31.5 M17 34 L20 33.5 M35 34 L32 33.5" stroke="url(#emb)" stroke-width="1" opacity="0.7"></path>
+</svg>

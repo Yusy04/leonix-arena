@@ -1,0 +1,45 @@
+/* =========================================================
+   LEONIX — "Light" option  =  lifted FOREST-GREEN theme.
+
+   The green mascot art is painted to glow on a dark canvas,
+   so a bright/paper background washed them out and made their
+   eyes read as white. Instead, the light option keeps the SAME
+   bright-lime identity and light text as the dark theme, but on
+   a deeper forest-green canvas (≈#081e10) — "a bit lighter than
+   black" — matching the reference. Only the canvas changes;
+   everything else is inherited from the dark (default) theme.
+   ========================================================= */
+
+:root[data-theme="light"] {
+  /* lift a few surfaces toward green so panels read on the
+     lighter forest canvas; brand greens + text stay as dark theme */
+  --surface:         rgba(9, 24, 14, 0.72);
+  --surface-2:       rgba(12, 30, 18, 0.80);
+  --surface-3:       rgba(16, 36, 22, 0.86);
+  --surface-glass:   rgba(124, 240, 63, 0.022);
+  --hairline:        rgba(124, 240, 63, 0.13);
+  --hairline-strong: rgba(124, 240, 63, 0.22);
+  --border:          rgba(124, 240, 63, 0.15);
+  --border-strong:   rgba(124, 240, 63, 0.28);
+}
+
+/* ---- Page canvas: deep forest green (lighter than the near-black dark) ---- */
+[data-theme="light"] body {
+  background: #081e10;
+  background-image:
+    radial-gradient(ellipse 1100px 760px at 82% -5%, rgba(84,232,23,0.12), transparent 55%),
+    radial-gradient(ellipse 820px 620px at 8% 8%, rgba(84,232,23,0.06), transparent 55%),
+    linear-gradient(180deg, #0a2614 0%, #06180c 100%);
+}
+[data-theme="light"] body::before {
+  background-image:
+    linear-gradient(rgba(124,240,63,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,240,63,0.04) 1px, transparent 1px);
+}
+[data-theme="light"] body::after {
+  background: radial-gradient(circle at 18% 82%, rgba(84,232,23,0.06), transparent 38%);
+}
+
+/* ---- Theme toggle button (shared) ---- */
+.theme-toggle svg { transition: transform var(--t-base) var(--ease-spring); }
+.theme-toggle:hover svg { transform: rotate(-18deg); color: var(--brand-400); }

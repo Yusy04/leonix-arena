@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56">
+  <defs>
+    <linearGradient id="mark-grad" x1="50" y1="56" x2="6" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#71c873"></stop>
+      <stop offset="1" stop-color="#4f8750"></stop>
+    </linearGradient>
+  </defs>
+  <g transform="translate(5.5 4) scale(1.05)" fill="url(#mark-grad)">
+    <polygon points="26.11 26.97 13.55 23.93 27.11 32.97 26.11 26.97"></polygon>
+    <polygon points="29.36 38.4 15.81 33.88 28.71 42.48 28.43 46.9 20.33 51.95 29.36 48.46 38.4 51.95 30.3 46.89 30.02 42.48 42.92 33.88 29.36 38.4"></polygon>
+    <polygon points="31.63 32.97 45.18 23.93 32.63 26.98 31.63 32.97"></polygon>
+    <path d="M38.4,11.29L29.36,0l-9.03,11.29-9.03-6.78,2.02,10.09.24,1.21h31.63l2.25-11.29-9.03,6.78Z"></path>
+  </g>
+</svg>
