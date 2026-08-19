@@ -1,7 +1,12 @@
-/* global React, Icon, Avatar, HexChip, ProgressRing, Section */
-const { useState } = React;
+"use client";
 
-function Dashboard({ navigate, user }) {
+import { useRouter } from "next/navigation";
+import { HexChip, Icon, ProgressRing, Section } from "@/components/ui";
+import { useApp } from "@/components/providers/AppProvider";
+
+export function Dashboard() {
+  const router = useRouter();
+  const { user } = useApp();
   const recentSubs = [
     { id:'s1', problem:'Sliding Window Maximum', tag:'two pointers', verdict:'AC',  score:100, when:'2h ago' },
     { id:'s2', problem:'Shortest Path Grid',     tag:'graphs',       verdict:'TLE', score:70,  when:'Yesterday' },
@@ -13,7 +18,7 @@ function Dashboard({ navigate, user }) {
     { id:'r2', title:'Union-Find Islands',             diff:'medium', diffLvl:3, tag:'dsu' },
     { id:'r3', title:'Binary Search on Answer',        diff:'hard',   diffLvl:5, tag:'search' },
   ];
-  const verdictClass = (v) => v === 'AC' ? 'is-success' : (v === 'TLE' ? 'is-warning' : 'is-danger');
+  const verdictClass = (v: string) => v === 'AC' ? 'is-success' : (v === 'TLE' ? 'is-warning' : 'is-danger');
 
   return (
     <div className="container-wide">
@@ -25,8 +30,8 @@ function Dashboard({ navigate, user }) {
             <p className="subtitle">{user.streak}-day streak · level {user.level} · {user.xp.toLocaleString()} XP</p>
           </div>
           <div className="row gap-3">
-            <button className="btn btn-secondary" onClick={() => navigate('buddy')}><Icon name="sparkle" size={14}/> AI buddy</button>
-            <button className="btn btn-primary" onClick={() => navigate('archive')}><Icon name="target" size={14}/> Solve a problem</button>
+            <button className="btn btn-secondary" onClick={() => router.push('/buddy')}><Icon name="sparkle" size={14}/> AI buddy</button>
+            <button className="btn btn-primary" onClick={() => router.push('/archive')}><Icon name="target" size={14}/> Solve a problem</button>
           </div>
         </div>
       </div>
@@ -35,10 +40,10 @@ function Dashboard({ navigate, user }) {
         <div className="stack-6" style={{minWidth:0}}>
           {/* Recent submissions */}
           <Section eyebrow="// recent" title="Your latest submissions"
-            action={<button className="btn btn-ghost btn-sm" onClick={() => navigate('archive')}>Open archive</button>}>
+            action={<button className="btn btn-ghost btn-sm" onClick={() => router.push('/archive')}>Open archive</button>}>
             <div className="card">
               {recentSubs.map(s => (
-                <div key={s.id} className="upcoming-row" onClick={() => navigate('problem')} style={{cursor:'pointer'}}>
+                <div key={s.id} className="upcoming-row" onClick={() => router.push('/problem')} style={{cursor:'pointer'}}>
                   <div className="upcoming-date">
                     <ProgressRing percent={s.score} size={48}/>
                   </div>
@@ -57,7 +62,7 @@ function Dashboard({ navigate, user }) {
           <Section eyebrow="// recommended for you" title="Problems to try next">
             <div className="stack-3">
               {recommended.map(r => (
-                <div key={r.id} className="card is-interactive cont-row" onClick={() => navigate('problem')}>
+                <div key={r.id} className="card is-interactive cont-row" onClick={() => router.push('/problem')}>
                   <span className={'diff-badge diff-' + r.diffLvl}>{r.diff}</span>
                   <div className="stack-2" style={{flex:1, minWidth:0}}>
                     <div className="t-xs mono dim uppercase">{r.tag}</div>
@@ -77,7 +82,7 @@ function Dashboard({ navigate, user }) {
             <div className="strong mono" style={{fontSize:32}}>{user.xp.toLocaleString()}</div>
             <div className="progress is-thick"><div className="progress-bar" style={{width: `${user.xp/user.xpNext*100}%`}}/></div>
             <div className="t-xs dim mono">{user.xpNext - user.xp} XP to level {user.level + 1}</div>
-            <button className="btn btn-ghost btn-sm" onClick={() => navigate('leaderboard')}><Icon name="trophy" size={12}/> Leaderboard</button>
+            <button className="btn btn-ghost btn-sm" onClick={() => router.push('/leaderboard')}><Icon name="trophy" size={12}/> Leaderboard</button>
           </div>
 
           <div className="card card-body stack-4">
@@ -98,13 +103,13 @@ function Dashboard({ navigate, user }) {
                 </div>
               </div>
             </div>
-            <button className="btn btn-secondary btn-block btn-sm" onClick={() => navigate('archive')}><Icon name="target" size={12}/> Browse problems</button>
+            <button className="btn btn-secondary btn-block btn-sm" onClick={() => router.push('/archive')}><Icon name="target" size={12}/> Browse problems</button>
           </div>
 
           <div className="card card-body stack-3">
             <div className="t-xs mono dim uppercase">Need a hint?</div>
             <p className="t-sm muted">Your AI buddy knows every problem in the archive and gives hints without spoiling the solution.</p>
-            <button className="btn btn-primary btn-block btn-sm" onClick={() => navigate('buddy')}><Icon name="sparkle" size={12}/> Ask the AI buddy</button>
+            <button className="btn btn-primary btn-block btn-sm" onClick={() => router.push('/buddy')}><Icon name="sparkle" size={12}/> Ask the AI buddy</button>
           </div>
         </aside>
       </div>
@@ -112,7 +117,8 @@ function Dashboard({ navigate, user }) {
   );
 }
 
-function QRPage({ navigate, user }) {
+export function QRPage() {
+  const { user } = useApp();
   return (
     <div className="container">
       <div className="qr-page">
@@ -147,7 +153,7 @@ function QRPage({ navigate, user }) {
   );
 }
 
-function FakeQR({ seed }) {
+function FakeQR({ seed }: { seed: string }) {
   // generate deterministic 25x25 grid
   const size = 25;
   let h = 0; for (let i=0;i<seed.length;i++) h = (h*31 + seed.charCodeAt(i)) >>> 0;
@@ -179,5 +185,3 @@ function FakeQR({ seed }) {
     </svg>
   );
 }
-
-Object.assign(window, { Dashboard, QRPage });

@@ -1,22 +1,27 @@
-/* global React, Icon, Avatar, HexChip, ProgressRing, Section */
-const { useState, useEffect, useRef } = React;
+"use client";
 
-function Buddy({ navigate, user }) {
+import { useState } from "react";
+import { Avatar, Icon } from "@/components/ui";
+import { useApp } from "@/components/providers/AppProvider";
+
+export function Buddy() {
   const [messages, setMessages] = useState([
     { role: 'assistant', text: "Hey — I'm your Arena buddy. Stuck on a problem? I can explain a concept, suggest a warm-up, or help you debug your approach (without spoiling the solution). What are you working on?" },
   ]);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const send = async (text) => {
+  const send = async (text: string) => {
     if (!text.trim() || busy) return;
     setMessages(m => [...m, { role:'user', text }]);
     setDraft('');
     setBusy(true);
     try {
-      const reply = await window.claude.complete({
+      const claude = (window as unknown as { claude?: { complete: (arg: unknown) => Promise<string> } }).claude;
+      if (!claude) throw new Error("assistant unavailable");
+      const reply = await claude.complete({
         messages: [
-          { role: 'user', content:
+          { role: "user", content:
             `You are leonix Arena's AI study buddy for competitive programming. Help the student reason about algorithms and data structures. Be encouraging, concrete, and give hints rather than full solutions unless asked. Reply in 2-4 short paragraphs max. Question: ${text}` }
         ]
       });
@@ -69,7 +74,8 @@ function Buddy({ navigate, user }) {
   );
 }
 
-function Leaderboard({ navigate, user }) {
+export function Leaderboard() {
+  const { user } = useApp();
   const [scope, setScope] = useState('global');
   const [period, setPeriod] = useState('week');
   const data = [
@@ -138,5 +144,3 @@ function Leaderboard({ navigate, user }) {
     </div>
   );
 }
-
-Object.assign(window, { Buddy, Leaderboard });

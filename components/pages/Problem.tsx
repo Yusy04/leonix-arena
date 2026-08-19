@@ -1,12 +1,15 @@
-/* global React, Icon */
+"use client";
+
+import { useState as usePb, useEffect } from "react";
+import { Icon } from "@/components/ui";
+
 /* ============================================================
    PROBLEM PAGE — Statement / Editorial / Submissions + editor
    Recreated from the provided mockups.
    ============================================================ */
-const { useState: usePb } = React;
 
 /* ---------- tiny C++ highlighter ---------- */
-function hlCpp(code) {
+function hlCpp(code: string): string[] {
   let s = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const KW = /\b(int|long|using|namespace|return|for|while|if|else|void|const|vector|set|map|pair|sort|cin|cout|std|nullptr|main|bool|auto|struct|double|ios|sync_with_stdio|tie|begin|end|first|second|push_back|size)\b/g;
   const NUM = /\b(\d+(?:LL|ll|u|U)?)\b/g;
@@ -19,22 +22,22 @@ function hlCpp(code) {
     const parts = line.split(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/);
     return parts.map((part, idx) => {
       if (idx % 2 === 1) return '<span class="c-str">' + part + '</span>';
-      let p = part.replace(/(\/\/.*)$/, '\u0001$1\u0002'); // shield trailing comment
+      let p = part.replace(/(\/\/.*)$/, '$1'); // shield trailing comment
       p = p.replace(KW, '<span class="c-kw">$1</span>');
       p = p.replace(NUM, '<span class="c-num">$1</span>');
-      p = p.replace(/\u0001(.*)\u0002/, '<span class="c-com">$1</span>');
+      p = p.replace(/(.*)/, '<span class="c-com">$1</span>');
       return p;
     }).join('');
   });
   return lines;
 }
 
-function CodePane({ code, className }) {
+function CodePane({ code, className }: { code: string; className?: string }) {
   const lines = hlCpp(code);
   return (
     <div className={'cpane' + (className ? ' ' + className : '')}>
       <div className="cpane-gutter">{lines.map((_, i) => <span key={i}>{i + 1}</span>)}</div>
-      <pre className="cpane-code">{lines.map((l, i) => <div key={i} className="cline" dangerouslySetInnerHTML={{ __html: l || '\u200b' }} />)}</pre>
+      <pre className="cpane-code">{lines.map((l, i) => <div key={i} className="cline" dangerouslySetInnerHTML={{ __html: l || '​' }} />)}</pre>
     </div>
   );
 }
@@ -107,9 +110,9 @@ int main() {
 function PbEditor() {
   const botTabs = ['Input','Output','Stderr','Compilation','Execution','Examples','Submission'];
   const [full, setFull] = usePb(false);
-  React.useEffect(() => {
+  useEffect(() => {
     if (!full) return;
-    const onKey = e => { if (e.key === 'Escape') setFull(false); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setFull(false); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [full]);
@@ -298,17 +301,17 @@ const PB_SUBS = [
   { date: 'May 20, 2025 09:47:52', user: 'ghostcode', score: 0,   ov: 'bad' },
   { date: 'May 20, 2025 09:23:15', user: 'novacpp',   score: 0,   ov: 'dash' },
 ];
-function ScoreBadge({ v }) {
+function ScoreBadge({ v }: { v: number }) {
   const cls = v >= 80 ? 'sc-hi' : v >= 40 ? 'sc-mid' : 'sc-lo';
   return <span className={'pb-score ' + cls}>{v} <span className="pb-score-tot">/ 100</span></span>;
 }
-function OvIcon({ ov }) {
+function OvIcon({ ov }: { ov: string }) {
   if (ov === 'ok')   return <span className="ov ov-ok"><Icon name="check" size={14}/></span>;
   if (ov === 'info') return <span className="ov ov-info">i</span>;
   if (ov === 'bad')  return <span className="ov ov-bad"><Icon name="close" size={14}/></span>;
   return <span className="ov ov-dash"><Icon name="minus" size={14}/></span>;
 }
-function PbSubmissions({ onSource, onEval }) {
+function PbSubmissions({ onSource, onEval }: { onSource: () => void; onEval: () => void }) {
   return (
     <div className="pb-subs">
       <h1 className="pb-h1 sm">Recent Submissions</h1>
@@ -331,7 +334,7 @@ function PbSubmissions({ onSource, onEval }) {
 }
 
 /* ---------- MODALS ---------- */
-function SourceModal({ onClose }) {
+function SourceModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="pb-modal-scrim" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="pb-modal hud is-glow">
@@ -357,13 +360,13 @@ const PB_GROUPS = [
   { name: 'Group 4', pts: 28, got: 0,  tests: [{ n: 7, st: 'ok', t: '35 ms', m: '5.2 MB' }, { n: 8, st: 'tle', t: '1000 ms', m: '16.6 MB' }, { n: 9, st: 'wa', t: '120 ms', m: '3.4 MB' }] },
   { name: 'Group 5', pts: 30, got: 0,  tests: [{ n: 10, st: 'pend', t: '--', m: '--' }] },
 ];
-function TestStatus({ st }) {
+function TestStatus({ st }: { st: string }) {
   if (st === 'ok')   return <span className="ts ts-ok"><Icon name="check" size={13}/> Accepted</span>;
   if (st === 'tle')  return <span className="ts ts-tle"><Icon name="clock" size={13}/> Time Limit</span>;
   if (st === 'wa')   return <span className="ts ts-wa"><Icon name="close" size={13}/> Wrong Answer</span>;
   return <span className="ts ts-pend"><Icon name="minus" size={13}/> Pending</span>;
 }
-function EvalModal({ onClose }) {
+function EvalModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="pb-modal-scrim" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="pb-modal pb-modal-eval hud is-glow">
@@ -401,9 +404,9 @@ function EvalModal({ onClose }) {
 }
 
 /* ---------- page shell ---------- */
-function Problem({ navigate, user }) {
+export default function Problem() {
   const [tab, setTab] = usePb('statement');
-  const [modal, setModal] = usePb(null);
+  const [modal, setModal] = usePb<string | null>(null);
   const tabs = [['statement','Statement'],['editorial','Editorial'],['submissions','Submissions']];
   return (
     <div className="pb container-wide">
@@ -428,5 +431,3 @@ function Problem({ navigate, user }) {
     </div>
   );
 }
-
-Object.assign(window, { Problem });

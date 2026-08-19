@@ -1,13 +1,21 @@
-/* global React, Icon, Avatar, HexChip */
-const { useState, useEffect, useRef } = React;
+"use client";
 
-function TopNav({ route, navigate, user, onOpenSearch, theme, onToggleTheme }) {
+import { useState, useEffect, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Icon, Avatar } from "@/components/ui";
+import { useApp } from "@/components/providers/AppProvider";
+
+export function TopNav() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user, theme, toggleTheme } = useApp();
+
   const [openProfile, setOpenProfile] = useState(false);
   const [openMobile, setOpenMobile] = useState(false);
   const [openCmd, setOpenCmd] = useState(false);
 
   useEffect(() => {
-    const h = (e) => {
+    const h = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setOpenCmd(true); }
       if (e.key === 'Escape') { setOpenCmd(false); setOpenProfile(false); }
     };
@@ -16,18 +24,18 @@ function TopNav({ route, navigate, user, onOpenSearch, theme, onToggleTheme }) {
   }, []);
 
   const links = [
-    { id: 'home',        label: 'Home',            route: 'home' },
-    { id: 'archive',     label: 'Problem Archive', route: 'archive' },
-    { id: 'leaderboard', label: 'Leaderboard',     route: 'leaderboard' },
-    { id: 'buddy',       label: 'AI Buddy',        route: 'buddy' },
+    { id: 'home',        label: 'Home',            path: '/' },
+    { id: 'archive',     label: 'Problem Archive', path: '/archive' },
+    { id: 'leaderboard', label: 'Leaderboard',     path: '/leaderboard' },
+    { id: 'buddy',       label: 'AI Buddy',        path: '/buddy' },
   ];
 
   return (
     <>
       <header className="topnav">
         <div className="container-wide topnav-inner">
-          <a className="brand brand-lockup" onClick={() => navigate('home')}>
-            <img src="assets/logo-emblem.svg" alt="" className="brand-emblem" width="40" height="40"/>
+          <a className="brand brand-lockup" onClick={() => router.push('/')}>
+            <img src="/assets/logo-emblem.svg" alt="" className="brand-emblem" width="40" height="40"/>
             <span className="brand-text">
               <span className="brand-name">leonix</span>
               <span className="brand-tag">arena</span>
@@ -37,8 +45,8 @@ function TopNav({ route, navigate, user, onOpenSearch, theme, onToggleTheme }) {
           <nav className="topnav-links">
             {links.map(l => (
               <a key={l.id}
-                 onClick={() => navigate(l.route)}
-                 className={'topnav-link' + (route.page === l.route ? ' is-active' : '')}>
+                 onClick={() => router.push(l.path)}
+                 className={'topnav-link' + (pathname === l.path ? ' is-active' : '')}>
                 {l.label}
               </a>
             ))}
@@ -50,7 +58,7 @@ function TopNav({ route, navigate, user, onOpenSearch, theme, onToggleTheme }) {
               <span className="muted">Search…</span>
               <span className="kbd mono">⌘K</span>
             </button>
-            <button className="btn btn-ghost btn-icon theme-toggle" onClick={onToggleTheme}
+            <button className="btn btn-ghost btn-icon theme-toggle" onClick={toggleTheme}
                     title={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
                     aria-label="Toggle color theme">
               <Icon name={theme === 'light' ? 'moon' : 'sun'} size={16}/>
@@ -61,7 +69,7 @@ function TopNav({ route, navigate, user, onOpenSearch, theme, onToggleTheme }) {
                   <Icon name="bell" size={16}/>
                   <span className="dot-badge"></span>
                 </button>
-                <button className="btn btn-ghost btn-icon" onClick={() => navigate('qr')} title="My QR">
+                <button className="btn btn-ghost btn-icon" onClick={() => router.push('/qr')} title="My QR">
                   <Icon name="qr" size={16}/>
                 </button>
                 <div className="profile-pop">
@@ -83,12 +91,12 @@ function TopNav({ route, navigate, user, onOpenSearch, theme, onToggleTheme }) {
                         <div><div className="t-xs dim">XP</div><div className="strong mono">{user.xp}</div></div>
                       </div>
                       <div className="profile-links">
-                        <a onClick={() => { navigate('dashboard'); setOpenProfile(false); }}><Icon name="home" size={14}/> Dashboard</a>
-                        <a onClick={() => { navigate('leaderboard'); setOpenProfile(false); }}><Icon name="trophy" size={14}/> Leaderboard</a>
-                        <a onClick={() => { navigate('qr'); setOpenProfile(false); }}><Icon name="qr" size={14}/> My QR code</a>
-                        <a onClick={() => { navigate('profile'); setOpenProfile(false); }}><Icon name="settings" size={14}/> Account</a>
+                        <a onClick={() => { router.push('/dashboard'); setOpenProfile(false); }}><Icon name="home" size={14}/> Dashboard</a>
+                        <a onClick={() => { router.push('/leaderboard'); setOpenProfile(false); }}><Icon name="trophy" size={14}/> Leaderboard</a>
+                        <a onClick={() => { router.push('/qr'); setOpenProfile(false); }}><Icon name="qr" size={14}/> My QR code</a>
+                        <a onClick={() => { router.push('/profile'); setOpenProfile(false); }}><Icon name="settings" size={14}/> Account</a>
                         <div className="divider" style={{margin:'6px 0'}}/>
-                        <a onClick={() => { navigate('login'); setOpenProfile(false); }}><Icon name="logout" size={14}/> Sign out</a>
+                        <a onClick={() => { router.push('/login'); setOpenProfile(false); }}><Icon name="logout" size={14}/> Sign out</a>
                       </div>
                     </div>
                   )}
@@ -96,8 +104,8 @@ function TopNav({ route, navigate, user, onOpenSearch, theme, onToggleTheme }) {
               </>
             ) : (
               <>
-                <button className="btn btn-ghost" onClick={() => navigate('login')}>Sign in</button>
-                <button className="btn btn-primary" onClick={() => navigate('register')}>Get started</button>
+                <button className="btn btn-ghost" onClick={() => router.push('/login')}>Sign in</button>
+                <button className="btn btn-primary" onClick={() => router.push('/register')}>Get started</button>
               </>
             )}
             <button className="btn btn-ghost btn-icon mobile-only" onClick={() => setOpenMobile(true)}>
@@ -111,44 +119,45 @@ function TopNav({ route, navigate, user, onOpenSearch, theme, onToggleTheme }) {
         <div className="mobile-nav-overlay" onClick={() => setOpenMobile(false)}>
           <div className="mobile-nav" onClick={(e) => e.stopPropagation()}>
             <div className="row-between" style={{padding:'18px 20px', borderBottom:'1px solid var(--hairline)'}}>
-              <img src="assets/logo-emblem.svg" height="28" alt="leonix"/>
+              <img src="/assets/logo-emblem.svg" height="28" alt="leonix"/>
               <button className="btn btn-ghost btn-icon" onClick={() => setOpenMobile(false)}><Icon name="close" size={18}/></button>
             </div>
             <nav className="mobile-nav-links">
               {links.map(l => (
-                <a key={l.id} onClick={() => { navigate(l.route); setOpenMobile(false); }}
-                   className={route.page === l.route ? 'is-active' : ''}>
+                <a key={l.id} onClick={() => { router.push(l.path); setOpenMobile(false); }}
+                   className={pathname === l.path ? 'is-active' : ''}>
                   {l.label}
                 </a>
               ))}
               <div className="divider"/>
-              <a onClick={() => { navigate('dashboard'); setOpenMobile(false); }}>Dashboard</a>
-              <a onClick={() => { navigate('qr'); setOpenMobile(false); }}>QR Code</a>
-              <a onClick={() => { navigate('profile'); setOpenMobile(false); }}>Account</a>
+              <a onClick={() => { router.push('/dashboard'); setOpenMobile(false); }}>Dashboard</a>
+              <a onClick={() => { router.push('/qr'); setOpenMobile(false); }}>QR Code</a>
+              <a onClick={() => { router.push('/profile'); setOpenMobile(false); }}>Account</a>
             </nav>
           </div>
         </div>
       )}
 
-      {openCmd && <CommandPalette onClose={() => setOpenCmd(false)} navigate={navigate} />}
+      {openCmd && <CommandPalette onClose={() => setOpenCmd(false)} />}
     </>
   );
 }
 
-function CommandPalette({ onClose, navigate }) {
+export function CommandPalette({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
   const [q, setQ] = useState('');
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   const items = [
-    { kind: 'page', label: 'Go to dashboard',     icon: 'home',    action: () => navigate('dashboard') },
-    { kind: 'page', label: 'Browse problem archive', icon: 'target', action: () => navigate('archive') },
-    { kind: 'page', label: 'Open a problem',       icon: 'code',    action: () => navigate('problem') },
-    { kind: 'page', label: 'Leaderboard',          icon: 'trophy',  action: () => navigate('leaderboard') },
-    { kind: 'page', label: 'AI Study Buddy',       icon: 'sparkle', action: () => navigate('buddy') },
-    { kind: 'page', label: 'My QR code',           icon: 'qr',      action: () => navigate('qr') },
+    { kind: 'page', label: 'Go to dashboard',     icon: 'home',    action: () => router.push('/dashboard') },
+    { kind: 'page', label: 'Browse problem archive', icon: 'target', action: () => router.push('/archive') },
+    { kind: 'page', label: 'Open a problem',       icon: 'code',    action: () => router.push('/problem') },
+    { kind: 'page', label: 'Leaderboard',          icon: 'trophy',  action: () => router.push('/leaderboard') },
+    { kind: 'page', label: 'AI Study Buddy',       icon: 'sparkle', action: () => router.push('/buddy') },
+    { kind: 'page', label: 'My QR code',           icon: 'qr',      action: () => router.push('/qr') },
   ];
-  const filtered = q ? items.filter(i => (i.label + ' ' + (i.sub||'')).toLowerCase().includes(q.toLowerCase())) : items.slice(0, 9);
+  const filtered = q ? items.filter(i => (i.label + ' ').toLowerCase().includes(q.toLowerCase())) : items.slice(0, 9);
 
   return (
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
@@ -165,7 +174,6 @@ function CommandPalette({ onClose, navigate }) {
             <button key={i} className="cmd-item" onClick={() => { it.action(); onClose(); }}>
               <Icon name={it.icon} size={14}/>
               <span style={{flex:1}}>{it.label}</span>
-              {it.sub && <span className="dim t-xs">{it.sub}</span>}
               <Icon name="arrow-r" size={12}/>
             </button>
           ))}
@@ -180,13 +188,14 @@ function CommandPalette({ onClose, navigate }) {
   );
 }
 
-function Footer({ navigate }) {
+export function Footer() {
+  const router = useRouter();
   return (
     <footer className="footer">
       <div className="container-wide">
         <div className="footer-grid">
           <div className="stack-4">
-            <img src="assets/logo-emblem.svg" height="40" alt="leonix"/>
+            <img src="/assets/logo-emblem.svg" height="40" alt="leonix"/>
             <p className="t-sm muted" style={{maxWidth:280}}>
               The training arena for competitive programmers. Solve, submit, get hints, climb the ranks.
             </p>
@@ -196,16 +205,16 @@ function Footer({ navigate }) {
           </div>
           <div className="stack-3">
             <div className="t-xs dim mono uppercase">Train</div>
-            <a onClick={() => navigate('archive')} className="t-sm">Problem Archive</a>
-            <a onClick={() => navigate('leaderboard')} className="t-sm">Leaderboard</a>
-            <a onClick={() => navigate('buddy')} className="t-sm">AI Study Buddy</a>
+            <a onClick={() => router.push('/archive')} className="t-sm">Problem Archive</a>
+            <a onClick={() => router.push('/leaderboard')} className="t-sm">Leaderboard</a>
+            <a onClick={() => router.push('/buddy')} className="t-sm">AI Study Buddy</a>
           </div>
           <div className="stack-3">
             <div className="t-xs dim mono uppercase">Account</div>
-            <a onClick={() => navigate('dashboard')} className="t-sm">Dashboard</a>
-            <a onClick={() => navigate('qr')} className="t-sm">My QR code</a>
-            <a onClick={() => navigate('login')} className="t-sm">Sign in</a>
-            <a onClick={() => navigate('register')} className="t-sm">Create account</a>
+            <a onClick={() => router.push('/dashboard')} className="t-sm">Dashboard</a>
+            <a onClick={() => router.push('/qr')} className="t-sm">My QR code</a>
+            <a onClick={() => router.push('/login')} className="t-sm">Sign in</a>
+            <a onClick={() => router.push('/register')} className="t-sm">Create account</a>
           </div>
         </div>
         <div className="footer-bottom">
@@ -216,5 +225,3 @@ function Footer({ navigate }) {
     </footer>
   );
 }
-
-Object.assign(window, { TopNav, Footer });

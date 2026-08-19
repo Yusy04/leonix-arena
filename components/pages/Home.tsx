@@ -1,19 +1,23 @@
-/* global React, Icon, Avatar, Section */
-const { useState, useEffect, useMemo } = React;
+"use client";
 
-function Home({ navigate, user }) {
+import React from "react";
+import { useRouter } from "next/navigation";
+import { Icon } from "@/components/ui";
+
+export default function Home() {
   return (
     <div className="home-v2">
-      <Hero navigate={navigate}/>
-      <ProblemArchive navigate={navigate}/>
-      <GetStarted navigate={navigate}/>
-      <Community navigate={navigate}/>
+      <Hero/>
+      <ProblemArchive/>
+      <GetStarted/>
+      <Community/>
     </div>
   );
 }
 
 /* ---------------- 1 · HERO ---------------- */
-function Hero({ navigate }) {
+function Hero() {
+  const router = useRouter();
   const feats = [
     { icon: 'target',  label: 'Thousands of problems across every topic and difficulty', route: 'archive' },
     { icon: 'sparkle', label: 'Instant AI hints when you get stuck — no spoilers', route: 'buddy' },
@@ -30,7 +34,7 @@ function Hero({ navigate }) {
           </h1>
           <div className="hero2-feats fade-in delay-2">
             {feats.map((f, i) => (
-              <div key={i} className="hud hud-row" onClick={() => navigate(f.route)}>
+              <div key={i} className="hud hud-row" onClick={() => router.push('/' + f.route)}>
                 <span className="hud-corners"></span>
                 <span className="hud-ico"><Icon name={f.icon} size={24}/></span>
                 <span className="hud-divider"></span>
@@ -42,8 +46,8 @@ function Hero({ navigate }) {
         </div>
 
         <div className="hero2-visual fade-in delay-2">
-          <img src="assets/mascots/hero-cat.png" className="mascot hero2-cat" alt="" width="462" height="263"/>
-          <img src="assets/mascots/cat-paws-tail.png" className="mascot hero2-paws" alt="" width="394" height="184"/>
+          <img src="/assets/mascots/hero-cat.png" className="mascot hero2-cat" alt="" width="462" height="263"/>
+          <img src="/assets/mascots/cat-paws-tail.png" className="mascot hero2-paws" alt="" width="394" height="184"/>
           <div className="term hero2-term">
             <div className="term-bar">
               <span className="term-dots"><i style={{background:'#f06464'}}></i><i style={{background:'#f5b461'}}></i><i style={{background:'#54e817'}}></i></span>
@@ -72,7 +76,8 @@ function Hero({ navigate }) {
 }
 
 /* ---------------- 2 · PROBLEM ARCHIVE ---------------- */
-function ProblemArchive({ navigate }) {
+function ProblemArchive() {
+  const router = useRouter();
   const cards = [
     { icon: 'trophy',    title: 'Olympiad\nProblems' },
     { icon: 'briefcase', title: 'Interview\nProblems' },
@@ -97,7 +102,7 @@ function ProblemArchive({ navigate }) {
           </p>
           <div className="archive-cards">
             {cards.map((c, i) => (
-              <div key={i} className="hud archive-card" onClick={() => navigate('archive')}>
+              <div key={i} className="hud archive-card" onClick={() => router.push('/archive')}>
                 <span className="hud-corners"></span>
                 <span className="archive-card-ico"><Icon name={c.icon} size={26}/></span>
                 <span className="archive-card-title">{c.title.split('\n').map((l,j,arr) => <React.Fragment key={j}>{l}{j < arr.length-1 ? <br/> : null}</React.Fragment>)}</span>
@@ -112,11 +117,11 @@ function ProblemArchive({ navigate }) {
               <span className="mono" style={{color:'var(--brand-400)', fontSize:14}}>Thousands of problems. Endless growth.</span>
               <span className="t-sm dim mono">Track progress, solve smarter, level up.</span>
             </div>
-            <button className="btn btn-glow archive-grow-btn" onClick={() => navigate('archive')}>LEARN. CONNECT. GROW.</button>
+            <button className="btn btn-glow archive-grow-btn" onClick={() => router.push('/archive')}>LEARN. CONNECT. GROW.</button>
           </div>
         </div>
         <div className="archive-right">
-          <img src="assets/mascots/panther-metal.png" className="mascot archive-panther" alt="" width="656" height="616"/>
+          <img src="/assets/mascots/panther-metal.png" className="mascot archive-panther" alt="" width="656" height="616"/>
           <div className="archive-stats">
             {stats.map((s, i) => (
               <div key={i} className="archive-stat">
@@ -135,7 +140,8 @@ function ProblemArchive({ navigate }) {
 }
 
 /* ---------------- 3 · GET STARTED ---------------- */
-function GetStarted({ navigate }) {
+function GetStarted() {
+  const router = useRouter();
   return (
     <section className="container-wide sect">
       <div className="hud getstarted is-glow">
@@ -145,16 +151,16 @@ function GetStarted({ navigate }) {
           <h2 className="getstarted-title">Your next milestone is <span className="hero2-title-accent">one account away</span></h2>
           <p className="getstarted-desc">Register on the Arena, start solving from the archive, and get instant hints whenever you need them.</p>
           <div className="row gap-3" style={{flexWrap:'wrap'}}>
-            <button className="btn btn-glow btn-lg getstarted-btn" onClick={() => navigate('login')}>
+            <button className="btn btn-glow btn-lg getstarted-btn" onClick={() => router.push('/login')}>
               <Icon name="arrow-l" size={16}/> Login
             </button>
-            <button className="btn btn-glow btn-lg getstarted-btn" onClick={() => navigate('register')}>
+            <button className="btn btn-glow btn-lg getstarted-btn" onClick={() => router.push('/register')}>
               <Icon name="user" size={16}/> Register
             </button>
           </div>
         </div>
         <div className="getstarted-art">
-          <img src="assets/mascots/paw-print.png" alt="" className="getstarted-paw"/>
+          <img src="/assets/mascots/paw-print.png" alt="" className="getstarted-paw"/>
         </div>
       </div>
     </section>
@@ -162,7 +168,7 @@ function GetStarted({ navigate }) {
 }
 
 /* ---------------- 4 · COMMUNITY ---------------- */
-function Community({ navigate }) {
+function Community() {
   const socials = [
     { name: 'Facebook',  cta: 'Follow us', color: '#1877F2', icon: <path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.2c-1.2 0-1.6.75-1.6 1.5V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z" fill="#1877F2"/> },
     { name: 'Instagram', cta: 'Follow us', grad: true, icon: <><defs><linearGradient id="ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stopColor="#FEDA75"/><stop offset="0.4" stopColor="#FA7E1E"/><stop offset="0.7" stopColor="#D62976"/><stop offset="1" stopColor="#962FBF"/></linearGradient></defs><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="url(#ig)"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="#fff" strokeWidth="1.7"/><circle cx="17.2" cy="6.8" r="1.2" fill="#fff"/></> },
@@ -207,11 +213,9 @@ function Community({ navigate }) {
           </div>
         </div>
         <div className="community-right">
-          <img src="assets/mascots/robot-cat.png" alt="" className="community-robot"/>
+          <img src="/assets/mascots/robot-cat.png" alt="" className="community-robot"/>
         </div>
       </div>
     </section>
   );
 }
-
-Object.assign(window, { Home });

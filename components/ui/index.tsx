@@ -1,14 +1,14 @@
-/* global React */
-const { useState, useEffect, useRef, useMemo } = React;
+"use client";
+import { useEffect } from "react";
 
 // ---------- Icons ----------
-function Icon({ name, size = 16, stroke = 1.6, className }) {
+export function Icon({ name, size = 16, stroke = 1.6, className }: { name: string; size?: number; stroke?: number; className?: string }) {
   const props = {
     width: size, height: size, viewBox: '0 0 24 24',
     fill: 'none', stroke: 'currentColor', strokeWidth: stroke,
     strokeLinecap: 'round', strokeLinejoin: 'round',
     className,
-  };
+  } as const;
   switch (name) {
     case 'home':     return <svg {...props}><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>;
     case 'shop':     return <svg {...props}><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M9 6V4a3 3 0 0 1 6 0v2"/></svg>;
@@ -71,7 +71,7 @@ function Icon({ name, size = 16, stroke = 1.6, className }) {
 }
 
 // ---------- Hex chip ----------
-function HexChip({ value, unit, size = 'md' }) {
+export function HexChip({ value, unit, size = 'md' }: { value: React.ReactNode; unit?: string; size?: "sm" | "md" | "lg" | "xl" }) {
   const cls = 'hex-chip' + (size === 'lg' ? ' is-lg' : size === 'xl' ? ' is-xl' : '');
   return (
     <span className={cls} title={`${value} ${unit || ''} credits`}>
@@ -95,7 +95,7 @@ function HexChip({ value, unit, size = 'md' }) {
 }
 
 // ---------- Avatar ----------
-function Avatar({ initial, hue = 145, size = 'md', src }) {
+export function Avatar({ initial, hue = 145, size = 'md', src }: { initial?: string; hue?: number; size?: "sm" | "md" | "lg" | "xl"; src?: string }) {
   const cls = 'avatar' + (size === 'lg' ? ' is-lg' : size === 'xl' ? ' is-xl' : size === 'sm' ? ' is-sm' : '');
   const bg = `linear-gradient(135deg, oklch(0.55 0.12 ${hue}), oklch(0.32 0.08 ${(hue + 40) % 360}))`;
   return (
@@ -106,19 +106,19 @@ function Avatar({ initial, hue = 145, size = 'md', src }) {
 }
 
 // ---------- Progress ring ----------
-function ProgressRing({ percent = 0, size = 56, label }) {
+export function ProgressRing({ percent = 0, size = 56, label }: { percent?: number; size?: number; label?: React.ReactNode }) {
   return (
-    <div className="ring" style={{ '--p': percent, '--size': size + 'px' }}>
+    <div className="ring" style={{ '--p': percent, '--size': size + 'px' } as React.CSSProperties}>
       <span className="ring-num">{label != null ? label : `${Math.round(percent)}%`}</span>
     </div>
   );
 }
 
 // ---------- Modal / Drawer ----------
-function Modal({ open, onClose, children, size }) {
+export function Modal({ open, onClose, children, size }: { open: boolean; onClose: () => void; children: React.ReactNode; size?: string }) {
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
     return () => { window.removeEventListener('keydown', handler); document.body.style.overflow = ''; };
@@ -133,7 +133,7 @@ function Modal({ open, onClose, children, size }) {
 }
 
 // ---------- Empty / Loading / Error ----------
-function EmptyState({ glyph = '∅', title, description, action }) {
+export function EmptyState({ glyph = '∅', title, description, action }: { glyph?: string; title?: React.ReactNode; description?: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="empty-state">
       <div className="glyph mono">{glyph}</div>
@@ -144,19 +144,19 @@ function EmptyState({ glyph = '∅', title, description, action }) {
   );
 }
 
-function Skeleton({ w = '100%', h = 16, r = 6, style }) {
+export function Skeleton({ w = '100%', h = 16, r = 6, style }: { w?: number | string; h?: number | string; r?: number; style?: React.CSSProperties }) {
   return <div className="skeleton" style={{ width: w, height: h, borderRadius: r, ...style }} />;
 }
 
 // ---------- Code block ----------
-function CodeBlock({ lines }) {
+export function CodeBlock({ lines }: { lines: string[] }) {
   return (
     <pre className="code-block">{lines.map((l, i) => <div key={i} dangerouslySetInnerHTML={{ __html: l }} />)}</pre>
   );
 }
 
 // ---------- Section ----------
-function Section({ eyebrow, title, action, children, id }) {
+export function Section({ eyebrow, title, action, children, id }: { eyebrow?: React.ReactNode; title?: React.ReactNode; action?: React.ReactNode; children?: React.ReactNode; id?: string }) {
   return (
     <section id={id} className="stack-6" style={{ padding: 'var(--s-12) 0' }}>
       <div className="row-between" style={{ flexWrap: 'wrap', gap: 16 }}>
@@ -170,7 +170,3 @@ function Section({ eyebrow, title, action, children, id }) {
     </section>
   );
 }
-
-Object.assign(window, {
-  Icon, HexChip, Avatar, ProgressRing, Modal, EmptyState, Skeleton, CodeBlock, Section,
-});

@@ -1,12 +1,22 @@
-/* global React, Icon */
+"use client";
+
+import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Icon } from "@/components/ui";
+
 /* ============================================================
    PROBLEM ARCHIVE  —  "Lista de probleme"
    Front-end replicated from the provided mockups.
    ============================================================ */
-const { useState, useMemo, useEffect, useRef } = React;
+
+interface ANode {
+  id: string;
+  label: string;
+  children?: ANode[];
+}
 
 /* ---------------- filter option sets ---------------- */
-const A_PROFESORI = [
+const A_PROFESORI: ANode[] = [
   { id: 'cumbre',    label: 'Cumbre Emil' },
   { id: 'mirsan',    label: 'Mîrșan Liviu' },
   { id: 'popescu',   label: 'Popescu Dan' },
@@ -14,7 +24,7 @@ const A_PROFESORI = [
   { id: 'radu',      label: 'Radu Mihai' },
   { id: 'georgescu', label: 'Georgescu Vlad' },
 ];
-const A_CONCURS = [
+const A_CONCURS: ANode[] = [
   { id: 'oni', label: 'ONI', children: [
     { id: 'oni-2018', label: '2018' },
     { id: 'oni-2019', label: '2019', children: [
@@ -35,7 +45,7 @@ const A_CONCURS = [
     { id: 'lot-seniori', label: 'Seniori' },
   ] },
 ];
-const A_ARIE = [
+const A_ARIE: ANode[] = [
   { id: 'grafuri', label: 'Grafuri', children: [
     { id: 'bfs',      label: 'BFS' },
     { id: 'dfs',      label: 'DFS' },
@@ -51,11 +61,11 @@ const A_ARIE = [
   { id: 'matematica',  label: 'Matematică' },
   { id: 'altele',      label: 'Altele' },
 ];
-const A_NIVEL = [1,2,3,4,5,6,7,8,9].map(n => ({ id: 'lvl' + n, label: 'Level ' + n }));
-const A_EDIT = [{ id: 'all', label: 'All' }, { id: 'open', label: 'Open' }];
+const A_NIVEL: ANode[] = [1,2,3,4,5,6,7,8,9].map(n => ({ id: 'lvl' + n, label: 'Level ' + n }));
+const A_EDIT: ANode[] = [{ id: 'all', label: 'All' }, { id: 'open', label: 'Open' }];
 
 /* flatten helper for counting / select-all */
-function flatIds(nodes, acc = []) {
+function flatIds(nodes: ANode[], acc: string[] = []): string[] {
   nodes.forEach(n => { acc.push(n.id); if (n.children) flatIds(n.children, acc); });
   return acc;
 }
@@ -65,8 +75,19 @@ const A_TITLES = ['Dumnuru','Sinr','Arborii','Backerf','Sinuri','Turn','Puterea'
 const A_AUTHORS = ['Emilian Miron','Sorin Stancu-Mara','Cristian Cedar','Cătălin Francu','Filip Cristian Bunanu','Cosmin Săvescu Negucan','Doru Pădoe','Dori Pocket','Liviu Cofrasi','Doru Chitabos','Tiberiu Sîrău','Vlad Stănilă Băltescu','Vlad Stăculă','Mugurel Ionuț Andrica','Adrian Ceroștescu'];
 const A_SOURCES = ['Lec 2005 · G','PMC 2006 · G','Lot 2006 · G','Lista lui Francu · G','Summer Challenge 1 · G','Summer Challenge 2 · G','Summer Warmup 2006 · G','Autumn Warmup 2006 · G','Happy Coding 2006 · G'];
 
-function makeProblems(page) {
-  const rows = [];
+interface Problem {
+  nr: number;
+  title: string;
+  author: string;
+  source: string;
+  editorial: string;
+  diff: number;
+  score: number | null;
+  solved: boolean;
+}
+
+function makeProblems(page: number): Problem[] {
+  const rows: Problem[] = [];
   const base = (page - 1) * 41 + 250;
   for (let i = 0; i < 30; i++) {
     const seed = base + i;
@@ -89,11 +110,18 @@ function makeProblems(page) {
 }
 
 /* ---------------- small bits ---------------- */
-function CheckBox({ on }) {
+function CheckBox({ on }: { on: boolean }) {
   return <span className={'af-check' + (on ? ' on' : '')}>{on ? <Icon name="check" size={12} stroke={2.4}/> : null}</span>;
 }
 
-function TreeNodes({ nodes, depth, sel, expanded, onToggle, onExpand }) {
+function TreeNodes({ nodes, depth, sel, expanded, onToggle, onExpand }: {
+  nodes: ANode[];
+  depth: number;
+  sel: Set<string>;
+  expanded: Set<string>;
+  onToggle: (id: string) => void;
+  onExpand: (id: string) => void;
+}) {
   return nodes.map(n => {
     const kids = n.children && n.children.length;
     const open = expanded.has(n.id);
@@ -109,13 +137,17 @@ function TreeNodes({ nodes, depth, sel, expanded, onToggle, onExpand }) {
             <span className="af-label">{n.label}</span>
           </button>
         </div>
-        {kids && open ? <TreeNodes nodes={n.children} depth={depth + 1} sel={sel} expanded={expanded} onToggle={onToggle} onExpand={onExpand}/> : null}
+        {kids && open ? <TreeNodes nodes={n.children!} depth={depth + 1} sel={sel} expanded={expanded} onToggle={onToggle} onExpand={onExpand}/> : null}
       </React.Fragment>
     );
   });
 }
 
-function FlatNodes({ nodes, sel, onToggle }) {
+function FlatNodes({ nodes, sel, onToggle }: {
+  nodes: ANode[];
+  sel: Set<string>;
+  onToggle: (id: string) => void;
+}) {
   return nodes.map(n => {
     const on = sel.has(n.id);
     return (
@@ -129,7 +161,16 @@ function FlatNodes({ nodes, sel, onToggle }) {
   });
 }
 
-function FilterField({ icon, name, value, fkey, open, setOpen, dropWidth, children }) {
+function FilterField({ icon, name, value, fkey, open, setOpen, dropWidth, children }: {
+  icon: string;
+  name: React.ReactNode;
+  value: React.ReactNode;
+  fkey: string;
+  open: string | null;
+  setOpen: (v: string | null) => void;
+  dropWidth?: number;
+  children?: React.ReactNode;
+}) {
   const isOpen = open === fkey;
   return (
     <div className="af-wrap">
@@ -142,7 +183,7 @@ function FilterField({ icon, name, value, fkey, open, setOpen, dropWidth, childr
         <span className="af-fchev"><Icon name="chev-d" size={18}/></span>
       </button>
       {isOpen ? (
-        <div className="af-drop hud is-glow" style={dropWidth ? { width: dropWidth } : null}>
+        <div className="af-drop hud is-glow" style={dropWidth ? { width: dropWidth } : undefined}>
           <span className="hud-corners"></span>
           {children}
         </div>
@@ -151,7 +192,7 @@ function FilterField({ icon, name, value, fkey, open, setOpen, dropWidth, childr
   );
 }
 
-function DropSearch({ placeholder }) {
+function DropSearch({ placeholder }: { placeholder?: string }) {
   return (
     <div className="af-search">
       <Icon name="search" size={15}/>
@@ -160,7 +201,7 @@ function DropSearch({ placeholder }) {
   );
 }
 
-function DropFoot({ count, onReset }) {
+function DropFoot({ count, onReset }: { count: React.ReactNode; onReset: () => void }) {
   return (
     <div className="af-foot">
       <span className="af-count mono">{count} selectate</span>
@@ -170,27 +211,28 @@ function DropFoot({ count, onReset }) {
 }
 
 /* ---------------- main page ---------------- */
-function Archive({ navigate, user }) {
-  const [open, setOpen] = useState(null);
+export default function Archive() {
+  const router = useRouter();
+  const [open, setOpen] = useState<string | null>(null);
   const [tab, setTab] = useState('all');
   const [page, setPage] = useState(1);
-  const [sel, setSel] = useState({
+  const [sel, setSel] = useState<Record<string, Set<string>>>({
     profesori: new Set(),
     concurs:   new Set(['oni', 'oni-2018', 'oni-2019', 'oni-2019-1112']),
     arie:      new Set(['grafuri', 'dijkstra']),
     nivel:     new Set(['lvl3', 'lvl5', 'lvl7']),
     editoriale:new Set(['open']),
   });
-  const [expanded, setExpanded] = useState(new Set(['grafuri', 'oni', 'oni-2019']));
+  const [expanded, setExpanded] = useState<Set<string>>(new Set(['grafuri', 'oni', 'oni-2019']));
 
-  const toggle = (fkey, id) => setSel(s => {
+  const toggle = (fkey: string, id: string) => setSel(s => {
     const next = new Set(s[fkey]);
     next.has(id) ? next.delete(id) : next.add(id);
     return { ...s, [fkey]: next };
   });
-  const reset = (fkey) => setSel(s => ({ ...s, [fkey]: new Set() }));
+  const reset = (fkey: string) => setSel(s => ({ ...s, [fkey]: new Set() }));
   const resetAll = () => setSel({ profesori: new Set(), concurs: new Set(), arie: new Set(), nivel: new Set(), editoriale: new Set() });
-  const toggleExpand = (id) => setExpanded(e => { const n = new Set(e); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const toggleExpand = (id: string) => setExpanded(e => { const n = new Set(e); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   const allRows = useMemo(() => makeProblems(page), [page]);
   const rows = useMemo(() => {
@@ -200,9 +242,9 @@ function Archive({ navigate, user }) {
     return allRows;
   }, [tab, allRows]);
 
-  const cnt = (fkey) => sel[fkey].size;
-  const fieldVal = (fkey, fallback) => cnt(fkey) ? cnt(fkey) + ' selectate' : fallback;
-  const pages = [1,2,3,4,5,6,7,8,9,10,11,'…',44,45,46,47,48];
+  const cnt = (fkey: string) => sel[fkey].size;
+  const fieldVal = (fkey: string, fallback: string) => cnt(fkey) ? cnt(fkey) + ' selectate' : fallback;
+  const pages: (number | string)[] = [1,2,3,4,5,6,7,8,9,10,11,'…',44,45,46,47,48];
   const cols = [
     { ic: 'hash', t: 'NUMĂR' }, { ic: 'list', t: 'TITLUL PROBLEMEI' }, { ic: 'user', t: 'AUTOR' },
     { ic: 'bookmark', t: 'SURSA' }, { ic: 'book', t: 'EDITORIAL' }, { ic: 'chart', t: 'NIVEL DE DIFICULTATE' }, { ic: 'star', t: 'SCORUL TĂU' },
@@ -216,12 +258,12 @@ function Archive({ navigate, user }) {
       <div className="arch-head">
         <h1 className="arch-title"><span className="arch-bar"></span>Lista de probleme</h1>
         <div className="arch-cats">
-          <button className="arch-cat" onClick={() => navigate('archive')}>
+          <button className="arch-cat" onClick={() => router.push('/archive')}>
             <Icon name="chev-r" size={14} className="cat-l"/>
             <span className="arch-cat-mid"><Icon name="code" size={15}/> CS Quizzes</span>
             <Icon name="chev-r" size={14}/>
           </button>
-          <button className="arch-cat" onClick={() => navigate('archive')}>
+          <button className="arch-cat" onClick={() => router.push('/archive')}>
             <Icon name="chev-r" size={14} className="cat-l"/>
             <span className="arch-cat-mid"><Icon name="book" size={15}/> Romanian Bacalaureate</span>
             <Icon name="chev-r" size={14}/>
@@ -296,12 +338,12 @@ function Archive({ navigate, user }) {
 
         <aside className="arch-ai hud is-glow">
           <span className="hud-corners"></span>
-          <img src="assets/mascots/panther-metal.png" className="ai-panther" alt=""/>
+          <img src="/assets/mascots/panther-metal.png" className="ai-panther" alt=""/>
           <div className="ai-body">
             <span className="ai-brand mono">{'{ leonix }'}</span>
             <h2 className="ai-title">AI TRAINING<br/>ASSISTANT</h2>
             <p className="ai-sub">Antrenament personalizat.<br/>Explicații inteligente.<br/>Rezultate reale.</p>
-            <button className="btn btn-glow ai-cta" onClick={() => navigate('buddy')}>Start self-training module <Icon name="arrow-r" size={16}/></button>
+            <button className="btn btn-glow ai-cta" onClick={() => router.push('/buddy')}>Start self-training module <Icon name="arrow-r" size={16}/></button>
           </div>
         </aside>
       </div>
@@ -319,7 +361,7 @@ function Archive({ navigate, user }) {
         <div className="arch-pages">
           {pages.map((p, i) => p === '…'
             ? <span key={i} className="arch-ellip">…</span>
-            : <button key={i} className={'arch-page mono' + (page === p ? ' is-active' : '')} onClick={() => setPage(p)}>{p}</button>)}
+            : <button key={i} className={'arch-page mono' + (page === p ? ' is-active' : '')} onClick={() => setPage(p as number)}>{p}</button>)}
         </div>
         <span className="arch-results mono">(1971 rezultate)</span>
         <button className="arch-reload" onClick={() => setPage(1)} aria-label="reload"><Icon name="refresh" size={16}/></button>
@@ -334,7 +376,7 @@ function Archive({ navigate, user }) {
           </thead>
           <tbody>
             {rows.map(p => (
-              <tr key={p.nr} className="ar-row-link" onClick={() => navigate('problem')} title="Open problem">
+              <tr key={p.nr} className="ar-row-link" onClick={() => router.push('/problem')} title="Open problem">
                 <td className="ar-nr mono">{p.nr}</td>
                 <td className="ar-title"><span className="ar-check">{p.solved ? <Icon name="check" size={14} stroke={2.4}/> : null}</span><span className="ar-title-txt">{p.title}</span></td>
                 <td className="ar-author">{p.author}</td>
@@ -352,5 +394,3 @@ function Archive({ navigate, user }) {
     </div>
   );
 }
-
-Object.assign(window, { Archive });

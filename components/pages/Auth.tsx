@@ -1,7 +1,13 @@
-/* global React, Icon */
-const { useState } = React;
+"use client";
 
-function Login({ navigate, onLogin }) {
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Icon } from "@/components/ui";
+import { useApp } from "@/components/providers/AppProvider";
+
+export function Login() {
+  const router = useRouter();
+  const { login } = useApp();
   return (
     <div className="auth-page">
       <div className="auth-card">
@@ -14,7 +20,7 @@ function Login({ navigate, onLogin }) {
             <cite className="t-xs mono dim">— Andrei P., 12th grade, București</cite>
           </div>
         </div>
-        <form className="auth-form stack-4" onSubmit={e => { e.preventDefault(); onLogin(); }}>
+        <form className="auth-form stack-4" onSubmit={e => { e.preventDefault(); login(); }}>
           <span className="eyebrow">// log in</span>
           <h1>Sign in to leonix Arena</h1>
           <div className="field"><label>Email</label><input className="input" type="email" defaultValue="alex@leonix.dev"/></div>
@@ -30,7 +36,7 @@ function Login({ navigate, onLogin }) {
             <button type="button" className="btn btn-secondary btn-block">GitHub</button>
           </div>
           <div className="t-sm dim" style={{textAlign:'center', marginTop:8}}>
-            New here? <a onClick={() => navigate('register')}>Create an account</a>
+            New here? <a onClick={() => router.push('/register')}>Create an account</a>
           </div>
         </form>
       </div>
@@ -38,7 +44,8 @@ function Login({ navigate, onLogin }) {
   );
 }
 
-function Register({ navigate, onLogin }) {
+export function Register() {
+  const { login } = useApp();
   const [step, setStep] = useState(0);
   return (
     <div className="auth-page">
@@ -97,12 +104,10 @@ function Register({ navigate, onLogin }) {
                 </label>
               ))}
             </div>
-            <div className="row gap-2"><button className="btn btn-secondary" onClick={() => setStep(1)}>Back</button><button className="btn btn-primary btn-block" onClick={onLogin}>Finish setup</button></div>
+            <div className="row gap-2"><button className="btn btn-secondary" onClick={() => setStep(1)}>Back</button><button className="btn btn-primary btn-block" onClick={login}>Finish setup</button></div>
           </>}
         </div>
       </div>
     </div>
   );
 }
-
-Object.assign(window, { Login, Register });
