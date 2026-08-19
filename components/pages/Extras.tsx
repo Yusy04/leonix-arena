@@ -5,7 +5,6 @@ import { Avatar, Icon } from "@/components/ui";
 import { useApp } from "@/components/providers/AppProvider";
 
 export function Buddy() {
-  const { user } = useApp();
   const [messages, setMessages] = useState([
     { role: 'assistant', text: "Hey — I'm your Arena buddy. Stuck on a problem? I can explain a concept, suggest a warm-up, or help you debug your approach (without spoiling the solution). What are you working on?" },
   ]);
