@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Icon, Avatar, HexChip } from "@/components/ui";
+import { Icon, Avatar } from "@/components/ui";
 import { useApp } from "@/components/providers/AppProvider";
 
 export function TopNav() {

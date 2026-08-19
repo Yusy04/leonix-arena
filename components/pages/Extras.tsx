@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Avatar, HexChip, Icon, ProgressRing, Section } from "@/components/ui";
+import { Avatar, Icon } from "@/components/ui";
 import { useApp } from "@/components/providers/AppProvider";
 
 export function Buddy() {

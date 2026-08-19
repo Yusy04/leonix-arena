@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Avatar, HexChip, Icon, ProgressRing, Section } from "@/components/ui";
+import { HexChip, Icon, ProgressRing, Section } from "@/components/ui";
 import { useApp } from "@/components/providers/AppProvider";
 
 export function Dashboard() {

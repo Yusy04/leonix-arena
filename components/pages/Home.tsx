@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Avatar, Icon, Section } from "@/components/ui";
+import { Icon } from "@/components/ui";
 
 export default function Home() {
   return (
