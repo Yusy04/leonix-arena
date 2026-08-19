@@ -1,11 +1,37 @@
-export const metadata = {
+import type { Metadata } from "next";
+import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
+import "../styles/tokens.css";
+import "../styles/base.css";
+import "../styles/components.css";
+import "../styles/nav.css";
+import "../styles/pages-home.css";
+import "../styles/pages-archive.css";
+import "../styles/pages-problem.css";
+import "../styles/pages.css";
+import "../styles/theme-light.css";
+import { AppProvider } from "@/components/providers/AppProvider";
+
+const hanken = Hanken_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-sans",
+});
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-mono-google",
+});
+
+export const metadata: Metadata = {
   title: "leonix arena — competitive programming training",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={`${hanken.variable} ${mono.variable}`}>
+      <body>
+        <AppProvider>{children}</AppProvider>
+      </body>
     </html>
   );
 }
