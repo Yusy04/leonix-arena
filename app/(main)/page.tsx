@@ -1,3 +1,5 @@
+import Home from "@/components/pages/Home";
+
 export default function Page() {
-  return <div>Leonix Arena — migration in progress</div>;
+  return <Home />;
 }
