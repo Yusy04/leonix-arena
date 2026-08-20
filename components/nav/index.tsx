@@ -285,9 +285,11 @@ export function Footer() {
           <div className="stack-3">
             <div className="t-xs dim mono uppercase">Account</div>
             <a onClick={() => router.push('/dashboard')} className="t-sm">Dashboard</a>
+            <a onClick={() => router.push('/profile')} className="t-sm">My profile</a>
+            <a onClick={() => router.push('/notifications')} className="t-sm">Notifications</a>
+            <a onClick={() => router.push('/settings')} className="t-sm">Settings</a>
             <a onClick={() => router.push('/qr')} className="t-sm">My QR code</a>
             <a onClick={() => router.push('/login')} className="t-sm">Sign in</a>
-            <a onClick={() => router.push('/register')} className="t-sm">Create account</a>
           </div>
         </div>
         <div className="footer-bottom">

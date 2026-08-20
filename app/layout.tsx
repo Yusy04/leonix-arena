@@ -11,6 +11,7 @@ import "../styles/pages-submissions.css";
 import "../styles/pages-profile.css";
 import "../styles/pages-notifications.css";
 import "../styles/pages-search.css";
+import "../styles/pages-settings.css";
 import "../styles/pages.css";
 import "../styles/theme-light.css";
 import { AppProvider } from "@/components/providers/AppProvider";

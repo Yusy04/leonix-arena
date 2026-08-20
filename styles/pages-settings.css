@@ -1,0 +1,44 @@
+/* =========================================================
+   SETTINGS — /settings
+   ========================================================= */
+
+.st { padding-bottom: var(--s-16); }
+.st-shell { display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start; }
+
+/* ---------- left rail ---------- */
+.st-nav { display: flex; flex-direction: column; gap: 3px; }
+.st-navi { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 0; border-radius: var(--r-2); background: none; color: var(--fg-muted); font-size: 13.5px; cursor: pointer; text-align: left; }
+.st-navi:hover { background: var(--surface-glass); color: var(--fg); }
+.st-navi.on { background: var(--brand-glow-soft); color: var(--brand-200); }
+.st-navi > svg { color: var(--brand-400); flex: 0 0 auto; }
+.st-navi.st-danger-navi { color: var(--danger); }
+.st-navi.st-danger-navi > svg { color: var(--danger); }
+
+/* ---------- panel ---------- */
+.st-panel { padding: 22px 24px; }
+.st-panel h2 { font-size: 18px; margin: 0 0 4px; }
+.st-panel .st-danger-h { color: var(--danger); }
+.st-sub { color: var(--fg-dim); font-size: 13px; margin: 0 0 18px; }
+
+.st-field { margin-bottom: 16px; }
+.st-field label { display: block; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg-muted); margin-bottom: 7px; }
+.st-field .input { max-width: 420px; }
+
+.st-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid var(--hairline); font-size: 14px; color: var(--fg); }
+
+.st-toggle { width: 40px; height: 23px; border-radius: 999px; border: 0; background: var(--ink-500); position: relative; cursor: pointer; transition: background var(--t-fast) var(--ease-out); flex: 0 0 auto; }
+.st-toggle i { position: absolute; top: 2px; left: 2px; width: 19px; height: 19px; border-radius: 999px; background: #fff; transition: left var(--t-fast) var(--ease-out); }
+.st-toggle.on { background: var(--brand-600); }
+.st-toggle.on i { left: 19px; }
+
+.st-actions { margin-top: 20px; }
+
+/* ---------- danger zone ---------- */
+.st-danger-box { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; margin-top: 12px; border: 1px solid var(--danger-bg); border-radius: var(--r-2); background: var(--danger-bg); }
+.st-delete { background: var(--danger); color: #fff; border: 0; }
+.st-delete:hover { filter: brightness(1.08); }
+
+@media (max-width: 780px) {
+  .st-shell { grid-template-columns: 1fr; }
+  .st-nav { flex-direction: row; flex-wrap: wrap; }
+}
