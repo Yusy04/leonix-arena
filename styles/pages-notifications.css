@@ -1,0 +1,42 @@
+/* =========================================================
+   NOTIFICATIONS — bell dropdown + /notifications page
+   ========================================================= */
+
+/* ---------- bell dropdown ---------- */
+.notif-pop { position: relative; }
+.notif-menu {
+  position: absolute; right: 0; top: calc(100% + 10px); width: 340px; z-index: 60;
+  background: var(--surface-3); border: 1px solid var(--hairline-strong); border-radius: var(--r-3);
+  box-shadow: var(--sh-3); overflow: hidden; backdrop-filter: blur(14px) saturate(1.1);
+}
+.notif-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid var(--hairline); }
+.notif-head .strong { font-size: 14px; color: var(--fg-strong); }
+.notif-mark { background: none; border: 0; color: var(--brand-400); font-size: 12px; cursor: pointer; }
+.notif-mark:disabled { color: var(--fg-faint); cursor: default; }
+.notif-scroll { max-height: 360px; overflow-y: auto; }
+.notif-item { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; padding: 10px 14px; background: none; border: 0; border-bottom: 1px solid var(--hairline); cursor: pointer; position: relative; }
+.notif-item:hover { background: rgba(84,232,23,0.04); }
+.notif-item.is-unread { background: rgba(84,232,23,0.05); }
+.notif-item.is-unread::before { content: ''; position: absolute; left: 5px; top: 15px; width: 6px; height: 6px; border-radius: 999px; background: var(--brand-500); }
+.notif-ic { width: 30px; height: 30px; flex: 0 0 auto; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--surface-glass); border: 1px solid var(--hairline); color: var(--brand-400); }
+.notif-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.notif-text { font-size: 13px; color: var(--fg); line-height: 1.4; }
+.notif-time { font-size: 11px; color: var(--fg-dim); }
+.notif-all { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 11px; background: none; border: 0; color: var(--brand-400); font-size: 13px; font-weight: 600; cursor: pointer; }
+.notif-all:hover { background: rgba(84,232,23,0.04); color: var(--brand-300); }
+
+/* ---------- /notifications page ---------- */
+.nt { padding-bottom: var(--s-16); }
+.nt-tabs { margin-bottom: var(--s-4); }
+.nt-list { padding: 0; overflow: hidden; }
+.nt-row { display: flex; gap: 12px; align-items: center; width: 100%; text-align: left; padding: 14px 16px; background: none; border: 0; border-bottom: 1px solid var(--hairline); cursor: pointer; position: relative; }
+.nt-row:last-child { border-bottom: 0; }
+.nt-row:hover { background: rgba(84,232,23,0.04); }
+.nt-row.is-unread { background: rgba(84,232,23,0.05); }
+.nt-row.is-unread::before { content: ''; position: absolute; left: 6px; top: 50%; transform: translateY(-50%); width: 6px; height: 6px; border-radius: 999px; background: var(--brand-500); }
+.nt-ic { width: 36px; height: 36px; flex: 0 0 auto; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; background: var(--surface-glass); border: 1px solid var(--hairline); color: var(--brand-400); }
+.nt-body { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
+.nt-text { font-size: 14px; color: var(--fg); }
+.nt-time { font-size: 11.5px; color: var(--fg-dim); }
+.nt-chev { color: var(--fg-faint); flex: 0 0 auto; }
+.nt-empty { padding: 32px; text-align: center; color: var(--fg-dim); }

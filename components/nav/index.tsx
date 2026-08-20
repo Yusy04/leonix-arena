@@ -4,20 +4,23 @@ import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Icon, Avatar } from "@/components/ui";
 import { useApp } from "@/components/providers/AppProvider";
+import { NOTIF_ICON } from "@/components/notifications/meta";
+import { formatDate } from "@/lib/data";
 
 export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, theme, toggleTheme } = useApp();
+  const { user, theme, toggleTheme, notifications, unreadCount, markRead, markAllRead } = useApp();
 
   const [openProfile, setOpenProfile] = useState(false);
   const [openMobile, setOpenMobile] = useState(false);
   const [openCmd, setOpenCmd] = useState(false);
+  const [openNotif, setOpenNotif] = useState(false);
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setOpenCmd(true); }
-      if (e.key === 'Escape') { setOpenCmd(false); setOpenProfile(false); }
+      if (e.key === 'Escape') { setOpenCmd(false); setOpenProfile(false); setOpenNotif(false); }
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
@@ -65,10 +68,35 @@ export function TopNav() {
             </button>
             {user.authed ? (
               <>
-                <button className="btn btn-ghost btn-icon" title="Notifications">
-                  <Icon name="bell" size={16}/>
-                  <span className="dot-badge"></span>
-                </button>
+                <div className="notif-pop">
+                  <button className="btn btn-ghost btn-icon" title="Notifications" onClick={() => setOpenNotif(o => !o)}>
+                    <Icon name="bell" size={16}/>
+                    {unreadCount > 0 && <span className="dot-badge"></span>}
+                  </button>
+                  {openNotif && (
+                    <div className="notif-menu" onMouseLeave={() => setOpenNotif(false)}>
+                      <div className="notif-head">
+                        <span className="strong">Notifications</span>
+                        <button className="notif-mark" onClick={markAllRead} disabled={unreadCount === 0}>Mark all read</button>
+                      </div>
+                      <div className="notif-scroll">
+                        {notifications.slice(0, 6).map(n => (
+                          <button key={n.id} className={'notif-item' + (n.read ? '' : ' is-unread')}
+                                  onClick={() => { markRead(n.id); setOpenNotif(false); router.push(n.href); }}>
+                            <span className="notif-ic"><Icon name={NOTIF_ICON[n.type]} size={14}/></span>
+                            <span className="notif-body">
+                              <span className="notif-text">{n.text}</span>
+                              <span className="notif-time mono">{formatDate(n.at, { month: 'short', day: 'numeric' })}</span>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                      <button className="notif-all" onClick={() => { setOpenNotif(false); router.push('/notifications'); }}>
+                        See all notifications <Icon name="arrow-r" size={13}/>
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <button className="btn btn-ghost btn-icon" onClick={() => router.push('/qr')} title="My QR">
                   <Icon name="qr" size={16}/>
                 </button>
