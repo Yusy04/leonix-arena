@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
+import { assetPath } from "@/lib/asset";
 
 /* ============================================================
    PROBLEM ARCHIVE  —  "Lista de probleme"
@@ -338,7 +339,7 @@ export default function Archive() {
 
         <aside className="arch-ai hud is-glow">
           <span className="hud-corners"></span>
-          <img src="/assets/mascots/panther-metal.png" className="ai-panther" alt=""/>
+          <img src={assetPath("/assets/mascots/panther-metal.png")} className="ai-panther" alt=""/>
           <div className="ai-body">
             <span className="ai-brand mono">{'{ leonix }'}</span>
             <h2 className="ai-title">AI TRAINING<br/>ASSISTANT</h2>

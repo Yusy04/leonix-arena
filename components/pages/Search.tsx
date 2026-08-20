@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Avatar, Icon } from "@/components/ui";
 import { searchAll } from "@/lib/mock";
 import type { Problem, UserProfile } from "@/lib/types";
@@ -26,10 +26,14 @@ function UserRow({ u, onClick }: { u: UserProfile; onClick: () => void }) {
   );
 }
 
-export function SearchResultsPage({ q }: { q: string }) {
+export function SearchResultsPage() {
   const router = useRouter();
+  const params = useSearchParams();
+  const q = params.get("q") ?? "";
   const [query, setQuery] = useState(q);
   const [tab, setTab] = useState("all");
+  // Keep the box in sync when arriving via ⌘K with a new ?q=.
+  useEffect(() => { setQuery(q); }, [q]);
   const res = searchAll(query);
   const total = res.problems.length + res.users.length + res.editorials.length;
 

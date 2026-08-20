@@ -7,6 +7,7 @@ import { useApp } from "@/components/providers/AppProvider";
 import { NOTIF_ICON } from "@/components/notifications/meta";
 import { searchAll } from "@/lib/mock";
 import { formatDate } from "@/lib/data";
+import { assetPath } from "@/lib/asset";
 
 export function TopNav() {
   const pathname = usePathname();
@@ -39,7 +40,7 @@ export function TopNav() {
       <header className="topnav">
         <div className="container-wide topnav-inner">
           <a className="brand brand-lockup" onClick={() => router.push('/')}>
-            <img src="/assets/logo-emblem.svg" alt="" className="brand-emblem" width="40" height="40"/>
+            <img src={assetPath("/assets/logo-emblem.svg")} alt="" className="brand-emblem" width="40" height="40"/>
             <span className="brand-text">
               <span className="brand-name">leonix</span>
               <span className="brand-tag">arena</span>
@@ -148,7 +149,7 @@ export function TopNav() {
         <div className="mobile-nav-overlay" onClick={() => setOpenMobile(false)}>
           <div className="mobile-nav" onClick={(e) => e.stopPropagation()}>
             <div className="row-between" style={{padding:'18px 20px', borderBottom:'1px solid var(--hairline)'}}>
-              <img src="/assets/logo-emblem.svg" height="28" alt="leonix"/>
+              <img src={assetPath("/assets/logo-emblem.svg")} height="28" alt="leonix"/>
               <button className="btn btn-ghost btn-icon" onClick={() => setOpenMobile(false)}><Icon name="close" size={18}/></button>
             </div>
             <nav className="mobile-nav-links">
@@ -268,7 +269,7 @@ export function Footer() {
       <div className="container-wide">
         <div className="footer-grid">
           <div className="stack-4">
-            <img src="/assets/logo-emblem.svg" height="40" alt="leonix"/>
+            <img src={assetPath("/assets/logo-emblem.svg")} height="40" alt="leonix"/>
             <p className="t-sm muted" style={{maxWidth:280}}>
               The training arena for competitive programmers. Solve, submit, get hints, climb the ranks.
             </p>

@@ -3,6 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
+import { assetPath } from "@/lib/asset";
 
 export default function Home() {
   return (
@@ -46,8 +47,8 @@ function Hero() {
         </div>
 
         <div className="hero2-visual fade-in delay-2">
-          <img src="/assets/mascots/hero-cat.png" className="mascot hero2-cat" alt="" width="462" height="263"/>
-          <img src="/assets/mascots/cat-paws-tail.png" className="mascot hero2-paws" alt="" width="394" height="184"/>
+          <img src={assetPath("/assets/mascots/hero-cat.png")} className="mascot hero2-cat" alt="" width="462" height="263"/>
+          <img src={assetPath("/assets/mascots/cat-paws-tail.png")} className="mascot hero2-paws" alt="" width="394" height="184"/>
           <div className="term hero2-term">
             <div className="term-bar">
               <span className="term-dots"><i style={{background:'#f06464'}}></i><i style={{background:'#f5b461'}}></i><i style={{background:'#54e817'}}></i></span>
@@ -121,7 +122,7 @@ function ProblemArchive() {
           </div>
         </div>
         <div className="archive-right">
-          <img src="/assets/mascots/panther-metal.png" className="mascot archive-panther" alt="" width="656" height="616"/>
+          <img src={assetPath("/assets/mascots/panther-metal.png")} className="mascot archive-panther" alt="" width="656" height="616"/>
           <div className="archive-stats">
             {stats.map((s, i) => (
               <div key={i} className="archive-stat">
@@ -160,7 +161,7 @@ function GetStarted() {
           </div>
         </div>
         <div className="getstarted-art">
-          <img src="/assets/mascots/paw-print.png" alt="" className="getstarted-paw"/>
+          <img src={assetPath("/assets/mascots/paw-print.png")} alt="" className="getstarted-paw"/>
         </div>
       </div>
     </section>
@@ -213,7 +214,7 @@ function Community() {
           </div>
         </div>
         <div className="community-right">
-          <img src="/assets/mascots/robot-cat.png" alt="" className="community-robot"/>
+          <img src={assetPath("/assets/mascots/robot-cat.png")} alt="" className="community-robot"/>
         </div>
       </div>
     </section>
