@@ -1,11 +1,15 @@
 "use client";
 
 import { useState as usePb, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
 import { CodePane } from "@/components/code/CodePane";
-import { Evaluation } from "@/components/submissions/Evaluation";
 import { SourceModal } from "@/components/submissions/SourceModal";
-import type { TestGroup } from "@/lib/types";
+import { submissionsForProblem } from "@/lib/mock";
+import { formatDate, formatTime } from "@/lib/data";
+import type { Submission } from "@/lib/types";
+
+const PROBLEM_ID = "matrix-exploration";
 
 /* ============================================================
    PROBLEM PAGE — Statement / Editorial / Submissions + editor
@@ -27,30 +31,6 @@ using namespace std;
 
 int main () {
 
-    return 0;
-}`;
-
-const PB_SUBMISSION = `#include <bits/stdc++.h>
-using namespace std;
-
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-
-    int n;
-    if (!(cin >> n)) return 0;
-
-    vector<long long> a(n);
-    for (int i = 0; i < n; ++i) cin >> a[i];
-
-    sort(a.begin(), a.end());
-
-    long long ans = 0;
-    for (int i = 0; i < n; ++i) {
-        ans += a[i] * (2LL * i - n + 1);
-    }
-
-    cout << ans << "\\n";
     return 0;
 }`;
 
@@ -264,16 +244,14 @@ function PbEditorial() {
 }
 
 /* ---------- SUBMISSIONS ---------- */
-const PB_SUBS = [
-  { date: 'May 20, 2025 11:42:18', user: 'leonix',    score: 100, ov: 'ok' },
-  { date: 'May 20, 2025 10:58:07', user: 'cyberdev',  score: 87,  ov: 'ok' },
-  { date: 'May 20, 2025 10:11:33', user: 'matrix01',  score: 42,  ov: 'info' },
-  { date: 'May 20, 2025 09:47:52', user: 'ghostcode', score: 0,   ov: 'bad' },
-  { date: 'May 20, 2025 09:23:15', user: 'novacpp',   score: 0,   ov: 'dash' },
-];
 function ScoreBadge({ v }: { v: number }) {
   const cls = v >= 80 ? 'sc-hi' : v >= 40 ? 'sc-mid' : 'sc-lo';
   return <span className={'pb-score ' + cls}>{v} <span className="pb-score-tot">/ 100</span></span>;
+}
+function ovFor(s: Submission): string {
+  if (s.verdict === 'AC') return 'ok';
+  if (s.verdict === 'PENDING') return 'dash';
+  return s.score > 0 ? 'info' : 'bad';
 }
 function OvIcon({ ov }: { ov: string }) {
   if (ov === 'ok')   return <span className="ov ov-ok"><Icon name="check" size={14}/></span>;
@@ -281,46 +259,28 @@ function OvIcon({ ov }: { ov: string }) {
   if (ov === 'bad')  return <span className="ov ov-bad"><Icon name="close" size={14}/></span>;
   return <span className="ov ov-dash"><Icon name="minus" size={14}/></span>;
 }
-function PbSubmissions({ onSource, onEval }: { onSource: () => void; onEval: () => void }) {
+function PbSubmissions({ onSource }: { onSource: (s: Submission) => void }) {
+  const router = useRouter();
+  const subs = submissionsForProblem(PROBLEM_ID).slice(0, 6);
   return (
     <div className="pb-subs">
-      <h1 className="pb-h1 sm">Recent Submissions</h1>
+      <div className="pb-subs-head">
+        <h1 className="pb-h1 sm">Recent Submissions</h1>
+        <button className="pb-viewall" onClick={() => router.push('/problem/submissions')}>View all submissions <Icon name="arrow-r" size={14}/></button>
+      </div>
       <div className="pb-subtable">
         <div className="pb-subrow pb-subhead">
           <span>Date</span><span>User</span><span>Score</span><span>Overview</span><span>Source</span>
         </div>
-        {PB_SUBS.map((s, i) => (
-          <div key={i} className="pb-subrow">
-            <span className="pb-sd"><Icon name="clock" size={13}/> {s.date}</span>
-            <span className="pb-su"><Icon name="user" size={13}/> {s.user}</span>
+        {subs.map((s) => (
+          <div key={s.id} className="pb-subrow">
+            <span className="pb-sd"><Icon name="clock" size={13}/> {formatDate(s.submittedAt, { month: 'short', day: 'numeric', year: 'numeric' })} {formatTime(s.submittedAt)}</span>
+            <span className="pb-su pb-su-link" onClick={() => router.push('/u/' + s.userHandle)}><Icon name="user" size={13}/> {s.userHandle}</span>
             <span><ScoreBadge v={s.score}/></span>
-            <span><button className="pb-ovbtn" onClick={onEval}><OvIcon ov={s.ov}/></button></span>
-            <span><button className="pb-viewsrc" onClick={onSource}><Icon name="code" size={13}/> View source</button></span>
+            <span><button className="pb-ovbtn" title="Evaluation details" onClick={() => router.push('/submissions/' + s.id)}><OvIcon ov={ovFor(s)}/></button></span>
+            <span><button className="pb-viewsrc" onClick={() => onSource(s)}><Icon name="code" size={13}/> View source</button></span>
           </div>
         ))}
-      </div>
-    </div>
-  );
-}
-
-/* ---------- MODALS ---------- */
-const PB_GROUPS: TestGroup[] = [
-  { name: 'Group 1', points: 10, awarded: 10, tests: [{ n: 1, status: 'ok', time: '8 ms', memory: '1.2 MB' }, { n: 2, status: 'ok', time: '11 ms', memory: '1.6 MB' }] },
-  { name: 'Group 2', points: 20, awarded: 20, tests: [{ n: 3, status: 'ok', time: '9 ms', memory: '1.5 MB' }, { n: 4, status: 'ok', time: '14 ms', memory: '1.8 MB' }, { n: 5, status: 'ok', time: '18 ms', memory: '2.5 MB' }] },
-  { name: 'Group 3', points: 12, awarded: 12, tests: [{ n: 6, status: 'ok', time: '22 ms', memory: '4.1 MB' }] },
-  { name: 'Group 4', points: 28, awarded: 0,  tests: [{ n: 7, status: 'ok', time: '35 ms', memory: '5.2 MB' }, { n: 8, status: 'tle', time: '1000 ms', memory: '16.6 MB' }, { n: 9, status: 'wa', time: '120 ms', memory: '3.4 MB' }] },
-  { name: 'Group 5', points: 30, awarded: 0,  tests: [{ n: 10, status: 'pend', time: '--', memory: '--' }] },
-];
-function EvalModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="pb-modal-scrim" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="pb-modal pb-modal-eval hud is-glow">
-        <span className="hud-corners"></span>
-        <div className="pb-modal-h">
-          <h3>Evaluation Details</h3>
-          <button className="pb-modal-x" onClick={onClose}><Icon name="close" size={18}/></button>
-        </div>
-        <Evaluation groups={PB_GROUPS} total={42} />
       </div>
     </div>
   );
@@ -329,7 +289,7 @@ function EvalModal({ onClose }: { onClose: () => void }) {
 /* ---------- page shell ---------- */
 export default function Problem() {
   const [tab, setTab] = usePb('statement');
-  const [modal, setModal] = usePb<string | null>(null);
+  const [srcSub, setSrcSub] = usePb<Submission | null>(null);
   const tabs = [['statement','Statement'],['editorial','Editorial'],['submissions','Submissions']];
   return (
     <div className="pb container-wide">
@@ -344,13 +304,12 @@ export default function Problem() {
           <div className="pb-body">
             {tab === 'statement' && <PbStatement/>}
             {tab === 'editorial' && <PbEditorial/>}
-            {tab === 'submissions' && <PbSubmissions onSource={() => setModal('source')} onEval={() => setModal('eval')}/>}
+            {tab === 'submissions' && <PbSubmissions onSource={setSrcSub}/>}
           </div>
         </div>
         <PbEditor/>
       </div>
-      {modal === 'source' && <SourceModal code={PB_SUBMISSION} language="C++17" onClose={() => setModal(null)}/>}
-      {modal === 'eval' && <EvalModal onClose={() => setModal(null)}/>}
+      {srcSub && <SourceModal code={srcSub.source} language={srcSub.language} onClose={() => setSrcSub(null)}/>}
     </div>
   );
 }
