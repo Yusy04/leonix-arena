@@ -3,16 +3,13 @@
 import { useRouter } from "next/navigation";
 import { HexChip, Icon, ProgressRing, Section } from "@/components/ui";
 import { useApp } from "@/components/providers/AppProvider";
+import { submissionsByUser } from "@/lib/mock";
+import { formatDate } from "@/lib/data";
 
 export function Dashboard() {
   const router = useRouter();
-  const { user } = useApp();
-  const recentSubs = [
-    { id:'s1', problem:'Sliding Window Maximum', tag:'two pointers', verdict:'AC',  score:100, when:'2h ago' },
-    { id:'s2', problem:'Shortest Path Grid',     tag:'graphs',       verdict:'TLE', score:70,  when:'Yesterday' },
-    { id:'s3', problem:'Coin Change',            tag:'dp',           verdict:'AC',  score:100, when:'Yesterday' },
-    { id:'s4', problem:'Segment Sum Queries',    tag:'data structures', verdict:'WA', score:40, when:'2 days ago' },
-  ];
+  const { user, currentHandle } = useApp();
+  const recentSubs = submissionsByUser(currentHandle).slice(0, 4);
   const recommended = [
     { id:'r1', title:'Longest Increasing Subsequence', diff:'medium', diffLvl:3, tag:'dp' },
     { id:'r2', title:'Union-Find Islands',             diff:'medium', diffLvl:3, tag:'dsu' },
@@ -43,14 +40,14 @@ export function Dashboard() {
             action={<button className="btn btn-ghost btn-sm" onClick={() => router.push('/archive')}>Open archive</button>}>
             <div className="card">
               {recentSubs.map(s => (
-                <div key={s.id} className="upcoming-row" onClick={() => router.push('/problem')} style={{cursor:'pointer'}}>
+                <div key={s.id} className="upcoming-row" onClick={() => router.push('/submissions/' + s.id)} style={{cursor:'pointer'}}>
                   <div className="upcoming-date">
-                    <ProgressRing percent={s.score} size={48}/>
+                    <ProgressRing percent={s.verdict === 'PENDING' ? 0 : s.score} size={48}/>
                   </div>
                   <div className="upcoming-body">
-                    <div className="row gap-2"><span className={'badge ' + verdictClass(s.verdict)}>{s.verdict}</span><span className="t-xs dim mono">{s.tag}</span></div>
-                    <div className="strong" style={{marginTop:6}}>{s.problem}</div>
-                    <div className="t-xs dim mono">{s.score}/100 · {s.when}</div>
+                    <div className="row gap-2"><span className={'badge ' + verdictClass(s.verdict)}>{s.verdict}</span><span className="t-xs dim mono">{s.language}</span></div>
+                    <div className="strong" style={{marginTop:6}}>{s.problemTitle}</div>
+                    <div className="t-xs dim mono">{s.verdict === 'PENDING' ? '—' : s.score + '/100'} · {formatDate(s.submittedAt, { month: 'short', day: 'numeric' })}</div>
                   </div>
                   <button className="btn btn-secondary btn-sm">{s.verdict === 'AC' ? 'Review' : 'Retry'}</button>
                 </div>

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Avatar, Icon } from "@/components/ui";
 import { useApp } from "@/components/providers/AppProvider";
+import { USERS } from "@/lib/mock";
 
 export function Buddy() {
   const [messages, setMessages] = useState([
@@ -75,19 +77,17 @@ export function Buddy() {
 }
 
 export function Leaderboard() {
-  const { user } = useApp();
+  const router = useRouter();
+  const { currentHandle } = useApp();
   const [scope, setScope] = useState('global');
   const [period, setPeriod] = useState('week');
-  const data = [
-    { rank:1, name:'Andrei P.', xp: 12480, hue: 200, you: false, badge:'∞' },
-    { rank:2, name:'Maria S.',  xp: 11920, hue: 320, you: false, badge:'★' },
-    { rank:3, name:'Vlad I.',   xp: 10310, hue:  80, you: false, badge:'★' },
-    { rank:4, name:'Ana C.',    xp:  9870, hue: 280, you: false, badge:'' },
-    { rank:5, name:'Mihai R.',  xp:  9540, hue: 140, you: false, badge:'' },
-    { rank:6, name: user.name,  xp: user.xp, hue: user.hue, you: true,  badge:'' },
-    { rank:7, name:'Diana V.',  xp:  4120, hue:  10, you: false, badge:'' },
-    { rank:8, name:'Cristi B.', xp:  3960, hue: 160, you: false, badge:'' },
-  ];
+  const data = USERS.slice(0, 8).map(u => ({
+    rank: u.rank, name: u.name, handle: u.handle, xp: u.xp, hue: u.hue,
+    streak: u.streak, solved: u.solved,
+    you: u.handle === currentHandle,
+    badge: u.rank === 1 ? '∞' : u.rank <= 3 ? '★' : '',
+  }));
+  const goTo = (handle: string) => router.push('/u/' + handle);
   return (
     <div className="container-narrow">
       <div className="page-header">
@@ -113,7 +113,7 @@ export function Leaderboard() {
           const cls = ['silver','gold','bronze'][i];
           const heights = [120, 160, 100];
           return (
-            <div key={p.rank} className={'podium-col podium-' + cls}>
+            <div key={p.rank} className={'podium-col podium-' + cls} onClick={() => goTo(p.handle)} style={{cursor:'pointer'}}>
               <Avatar initial={p.name[0]} hue={p.hue} size="lg"/>
               <div className="strong">{p.name}</div>
               <div className="t-xs mono dim">{p.xp.toLocaleString()} XP</div>
@@ -132,10 +132,10 @@ export function Leaderboard() {
             {data.map(p => (
               <tr key={p.rank} className={p.you ? 'is-you' : ''}>
                 <td className="mono strong">{p.rank}</td>
-                <td><div className="row gap-2"><Avatar initial={p.name[0]} hue={p.hue} size="sm"/><span>{p.name} {p.badge && <span className="brand-fg mono">{p.badge}</span>}{p.you && <span className="badge is-success" style={{marginLeft:6}}>you</span>}</span></div></td>
+                <td><div className="row gap-2 lb-name" onClick={() => goTo(p.handle)} style={{cursor:'pointer'}}><Avatar initial={p.name[0]} hue={p.hue} size="sm"/><span>{p.name} {p.badge && <span className="brand-fg mono">{p.badge}</span>}{p.you && <span className="badge is-success" style={{marginLeft:6}}>you</span>}</span></div></td>
                 <td className="mono">{p.xp.toLocaleString()}</td>
-                <td className="mono">{12 - p.rank}d</td>
-                <td className="mono">{140 - p.rank * 8}</td>
+                <td className="mono">{p.streak}d</td>
+                <td className="mono">{p.solved}</td>
               </tr>
             ))}
           </tbody>
