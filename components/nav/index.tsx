@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Icon, Avatar } from "@/components/ui";
 import { useApp } from "@/components/providers/AppProvider";
 import { NOTIF_ICON } from "@/components/notifications/meta";
+import { searchAll } from "@/lib/mock";
 import { formatDate } from "@/lib/data";
 
 export function TopNav() {
@@ -177,38 +178,82 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
-  const items = [
-    { kind: 'page', label: 'Go to dashboard',     icon: 'home',    action: () => router.push('/dashboard') },
-    { kind: 'page', label: 'Browse problem archive', icon: 'target', action: () => router.push('/archive') },
-    { kind: 'page', label: 'Open a problem',       icon: 'code',    action: () => router.push('/problem') },
-    { kind: 'page', label: 'Leaderboard',          icon: 'trophy',  action: () => router.push('/leaderboard') },
-    { kind: 'page', label: 'AI Study Buddy',       icon: 'sparkle', action: () => router.push('/buddy') },
-    { kind: 'page', label: 'My QR code',           icon: 'qr',      action: () => router.push('/qr') },
+  const pages = [
+    { label: 'Go to dashboard',        icon: 'home',    action: () => router.push('/dashboard') },
+    { label: 'Browse problem archive', icon: 'target',  action: () => router.push('/archive') },
+    { label: 'Leaderboard',            icon: 'trophy',  action: () => router.push('/leaderboard') },
+    { label: 'AI Study Buddy',         icon: 'sparkle', action: () => router.push('/buddy') },
+    { label: 'Notifications',          icon: 'bell',    action: () => router.push('/notifications') },
+    { label: 'Settings',               icon: 'settings',action: () => router.push('/settings') },
+    { label: 'My QR code',             icon: 'qr',      action: () => router.push('/qr') },
   ];
-  const filtered = q ? items.filter(i => (i.label + ' ').toLowerCase().includes(q.toLowerCase())) : items.slice(0, 9);
+  const res = searchAll(q);
+  const filteredPages = q ? pages.filter(p => p.label.toLowerCase().includes(q.toLowerCase())) : pages.slice(0, 6);
+  const go = (fn: () => void) => { fn(); onClose(); };
+  const seeAll = () => go(() => router.push('/search?q=' + encodeURIComponent(q)));
+  const hasContent = res.problems.length > 0 || res.users.length > 0;
 
   return (
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="cmd-palette">
         <div className="cmd-input">
           <Icon name="search" size={16}/>
-          <input ref={inputRef} placeholder="Search problems, pages, actions…"
-                 value={q} onChange={(e) => setQ(e.target.value)} />
+          <input ref={inputRef} placeholder="Search problems, users, pages…"
+                 value={q} onChange={(e) => setQ(e.target.value)}
+                 onKeyDown={(e) => { if (e.key === 'Enter' && q.trim()) seeAll(); }} />
           <span className="kbd mono">esc</span>
         </div>
         <div className="cmd-results">
-          {filtered.length === 0 && <div className="dim t-sm" style={{padding:'24px 20px', textAlign:'center'}}>No results for "{q}"</div>}
-          {filtered.map((it, i) => (
-            <button key={i} className="cmd-item" onClick={() => { it.action(); onClose(); }}>
-              <Icon name={it.icon} size={14}/>
-              <span style={{flex:1}}>{it.label}</span>
-              <Icon name="arrow-r" size={12}/>
+          {q && res.problems.length > 0 && (
+            <>
+              <div className="cmd-group">Problems</div>
+              {res.problems.slice(0, 4).map(p => (
+                <button key={p.id} className="cmd-item" onClick={() => go(() => router.push('/problem'))}>
+                  <Icon name="code" size={14}/>
+                  <span style={{flex:1}}>{p.title}</span>
+                  <span className="cmd-meta mono">{p.tags[0] ?? ''} · L{p.level}</span>
+                </button>
+              ))}
+            </>
+          )}
+          {q && res.users.length > 0 && (
+            <>
+              <div className="cmd-group">Users</div>
+              {res.users.slice(0, 4).map(u => (
+                <button key={u.handle} className="cmd-item" onClick={() => go(() => router.push('/u/' + u.handle))}>
+                  <Icon name="user" size={14}/>
+                  <span style={{flex:1}}>{u.name} <span className="dim mono">@{u.handle}</span></span>
+                  <span className="cmd-meta mono">#{u.rank}</span>
+                </button>
+              ))}
+            </>
+          )}
+          {filteredPages.length > 0 && (
+            <>
+              <div className="cmd-group">Pages</div>
+              {filteredPages.map((it, i) => (
+                <button key={i} className="cmd-item" onClick={() => go(it.action)}>
+                  <Icon name={it.icon} size={14}/>
+                  <span style={{flex:1}}>{it.label}</span>
+                  <Icon name="arrow-r" size={12}/>
+                </button>
+              ))}
+            </>
+          )}
+          {q && hasContent && (
+            <button className="cmd-item cmd-seeall" onClick={seeAll}>
+              <Icon name="search" size={14}/>
+              <span style={{flex:1}}>See all results for &ldquo;{q}&rdquo;</span>
+              <span className="kbd mono">↵</span>
             </button>
-          ))}
+          )}
+          {q && !hasContent && filteredPages.length === 0 && (
+            <div className="dim t-sm" style={{padding:'24px 20px', textAlign:'center'}}>No results for &ldquo;{q}&rdquo;</div>
+          )}
         </div>
         <div className="cmd-footer">
           <span><span className="kbd mono">↑↓</span> navigate</span>
-          <span><span className="kbd mono">↵</span> select</span>
+          <span><span className="kbd mono">↵</span> all results</span>
           <span><span className="kbd mono">esc</span> close</span>
         </div>
       </div>
