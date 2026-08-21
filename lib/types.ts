@@ -81,6 +81,19 @@ export interface UserProfile {
 }
 
 // ---------- Notifications ----------
+// ---------- Auth ----------
+export type Role = "STUDENT" | "HELPER" | "ADMIN";
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  handle: string;
+  name: string;
+  role: Role;
+  goals: string[];
+  language: string | null;
+}
+
 export type NotificationType =
   | "judged" | "hint" | "editorial" | "rank" | "streak" | "contest" | "badge";
 export interface Notification {
