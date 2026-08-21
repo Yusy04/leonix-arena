@@ -124,7 +124,7 @@ export function TopNav() {
                         <a onClick={() => { router.push('/dashboard'); setOpenProfile(false); }}><Icon name="home" size={14}/> Dashboard</a>
                         <a onClick={() => { router.push('/leaderboard'); setOpenProfile(false); }}><Icon name="trophy" size={14}/> Leaderboard</a>
                         <a onClick={() => { router.push('/qr'); setOpenProfile(false); }}><Icon name="qr" size={14}/> My QR code</a>
-                        <a onClick={() => { router.push('/profile'); setOpenProfile(false); }}><Icon name="settings" size={14}/> Account</a>
+                        <a onClick={() => { router.push('/settings'); setOpenProfile(false); }}><Icon name="settings" size={14}/> Account</a>
                         <div className="divider" style={{margin:'6px 0'}}/>
                         <a onClick={() => { setOpenProfile(false); logout(); }}><Icon name="logout" size={14}/> Sign out</a>
                       </div>

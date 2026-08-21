@@ -22,6 +22,8 @@ model User {
   role         Role      @default(STUDENT)
   goals        String[]  @default([])
   language     String?
+  city         String    @default("")
+  avatarHue    Int       @default(145)
   createdAt    DateTime  @default(now())
   sessions     Session[]
 }

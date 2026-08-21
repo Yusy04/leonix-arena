@@ -92,6 +92,8 @@ export interface AuthUser {
   role: Role;
   goals: string[];
   language: string | null;
+  city: string;
+  avatarHue: number;
 }
 
 export type NotificationType =

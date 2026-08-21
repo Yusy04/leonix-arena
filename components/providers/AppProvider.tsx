@@ -5,19 +5,23 @@ import { useRouter } from "next/navigation";
 import type { User, Theme, Notification, AuthUser, Role } from "@/lib/types";
 import { NOTIFICATIONS, CURRENT_HANDLE } from "@/lib/mock";
 
-// Placeholder mock stats layered under the real identity until app data is real.
-const MOCK_STATS = { hue: 145, city: "București", qrCode: "LNX-Y3K9-77AX", level: 7, xp: 6420, xpNext: 8000, streak: 12 };
+// Gamification stats aren't real yet (no problems backend), so they stay as
+// placeholders. Identity + profile details (name/email/city/avatar) come from
+// the signed-in account.
+const PLACEHOLDER_STATS = { qrCode: "LNX-Y3K9-77AX", level: 7, xp: 6420, xpNext: 8000, streak: 12 };
 
 function toMockUser(authUser: AuthUser | null): User {
   if (!authUser) {
-    return { authed: false, name: "Guest", initial: "G", email: "", ...MOCK_STATS };
+    return { authed: false, name: "Guest", initial: "G", email: "", hue: 145, city: "", ...PLACEHOLDER_STATS };
   }
   return {
     authed: true,
     name: authUser.name,
     initial: authUser.name.charAt(0).toUpperCase(),
     email: authUser.email,
-    ...MOCK_STATS,
+    hue: authUser.avatarHue,
+    city: authUser.city,
+    ...PLACEHOLDER_STATS,
   };
 }
 
@@ -45,7 +49,9 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ initialUser, children }: { initialUser: AuthUser | null; children: React.ReactNode }) {
   const router = useRouter();
-  const [authUser] = useState<AuthUser | null>(initialUser);
+  // Use the server-provided user directly (NOT useState) so it stays current
+  // when the session changes and the layout re-renders via router.refresh().
+  const authUser = initialUser;
   const [appearance, setAppearanceState] = useState<Appearance>({ theme: "dark", card: "glass", radius: "rounded" });
   const [notifications, setNotifications] = useState<Notification[]>(NOTIFICATIONS);
 

@@ -31,7 +31,16 @@
 .st-toggle.on { background: var(--brand-600); }
 .st-toggle.on i { left: 19px; }
 
-.st-actions { margin-top: 20px; }
+.st-actions { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- account editor ---------- */
+.st-ok { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--border-brand); background: var(--brand-glow-soft); color: var(--brand-300); border-radius: var(--r-2); padding: 8px 12px; font-size: 13px; margin-bottom: 14px; }
+.st-ok > svg { color: var(--brand-400); }
+.st-divider { height: 1px; background: var(--hairline); margin: 26px 0 20px; }
+.st-h3 { font-size: 16px; margin: 0 0 14px; color: var(--fg-strong); }
+.st-hues { display: flex; gap: 10px; flex-wrap: wrap; }
+.st-hue { width: 30px; height: 30px; border-radius: 999px; border: 2px solid transparent; cursor: pointer; padding: 0; }
+.st-hue.on { border-color: var(--brand-400); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--brand-500); }
 
 /* ---------- danger zone ---------- */
 .st-danger-box { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px; margin-top: 12px; border: 1px solid var(--danger-bg); border-radius: var(--r-2); background: var(--danger-bg); }

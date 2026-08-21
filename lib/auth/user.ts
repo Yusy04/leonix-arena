@@ -9,5 +9,8 @@ export function toPublicUser(u: User): PublicUser {
 }
 
 export function toAuthUser(u: User): AuthUser {
-  return { id: u.id, email: u.email, handle: u.handle, name: u.name, role: u.role, goals: u.goals, language: u.language };
+  return {
+    id: u.id, email: u.email, handle: u.handle, name: u.name, role: u.role,
+    goals: u.goals, language: u.language, city: u.city, avatarHue: u.avatarHue,
+  };
 }
