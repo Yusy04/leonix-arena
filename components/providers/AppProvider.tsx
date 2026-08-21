@@ -2,22 +2,24 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import type { User, Theme, Notification } from "@/lib/types";
+import type { User, Theme, Notification, AuthUser, Role } from "@/lib/types";
 import { NOTIFICATIONS, CURRENT_HANDLE } from "@/lib/mock";
 
-const DEFAULT_USER: User = {
-  authed: true,
-  name: "Alex Popescu",
-  initial: "A",
-  email: "alex@leonix.dev",
-  hue: 145,
-  city: "București",
-  qrCode: "LNX-Y3K9-77AX",
-  level: 7,
-  xp: 6420,
-  xpNext: 8000,
-  streak: 12,
-};
+// Placeholder mock stats layered under the real identity until app data is real.
+const MOCK_STATS = { hue: 145, city: "București", qrCode: "LNX-Y3K9-77AX", level: 7, xp: 6420, xpNext: 8000, streak: 12 };
+
+function toMockUser(authUser: AuthUser | null): User {
+  if (!authUser) {
+    return { authed: false, name: "Guest", initial: "G", email: "", ...MOCK_STATS };
+  }
+  return {
+    authed: true,
+    name: authUser.name,
+    initial: authUser.name.charAt(0).toUpperCase(),
+    email: authUser.email,
+    ...MOCK_STATS,
+  };
+}
 
 export type CardStyle = "glass" | "solid" | "outlined";
 export type RadiusStyle = "sharp" | "rounded" | "pill";
@@ -25,6 +27,8 @@ export interface Appearance { theme: Theme; card: CardStyle; radius: RadiusStyle
 
 interface AppContextValue {
   user: User;
+  authUser: AuthUser | null;
+  role: Role | null;
   currentHandle: string;
   theme: Theme;
   toggleTheme: () => void;
@@ -34,32 +38,26 @@ interface AppContextValue {
   unreadCount: number;
   markRead: (id: string) => void;
   markAllRead: () => void;
-  login: () => void;
+  logout: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
+export function AppProvider({ initialUser, children }: { initialUser: AuthUser | null; children: React.ReactNode }) {
   const router = useRouter();
-  const [user, setUser] = useState<User>(DEFAULT_USER);
+  const [authUser] = useState<AuthUser | null>(initialUser);
   const [appearance, setAppearanceState] = useState<Appearance>({ theme: "dark", card: "glass", radius: "rounded" });
   const [notifications, setNotifications] = useState<Notification[]>(NOTIFICATIONS);
 
-  // Read persisted appearance after mount (SSR-safe).
   useEffect(() => {
     try {
       const savedTheme = localStorage.getItem("leonix-theme") as Theme | null;
       const savedCard = localStorage.getItem("leonix-card") as CardStyle | null;
       const savedRadius = localStorage.getItem("leonix-radius") as RadiusStyle | null;
-      setAppearanceState(a => ({
-        theme: savedTheme ?? a.theme,
-        card: savedCard ?? a.card,
-        radius: savedRadius ?? a.radius,
-      }));
+      setAppearanceState(a => ({ theme: savedTheme ?? a.theme, card: savedCard ?? a.card, radius: savedRadius ?? a.radius }));
     } catch {}
   }, []);
 
-  // Apply + persist appearance to <html data-*>.
   useEffect(() => {
     const el = document.documentElement;
     el.dataset.theme = appearance.theme;
@@ -72,34 +70,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [appearance]);
 
-  const setAppearance = useCallback((patch: Partial<Appearance>) => {
-    setAppearanceState(a => ({ ...a, ...patch }));
-  }, []);
-  const toggleTheme = useCallback(() => {
-    setAppearanceState(a => ({ ...a, theme: a.theme === "light" ? "dark" : "light" }));
-  }, []);
+  const setAppearance = useCallback((patch: Partial<Appearance>) => setAppearanceState(a => ({ ...a, ...patch })), []);
+  const toggleTheme = useCallback(() => setAppearanceState(a => ({ ...a, theme: a.theme === "light" ? "dark" : "light" })), []);
+  const markRead = useCallback((id: string) => setNotifications(ns => ns.map(n => (n.id === id ? { ...n, read: true } : n))), []);
+  const markAllRead = useCallback(() => setNotifications(ns => ns.map(n => ({ ...n, read: true }))), []);
 
-  const markRead = useCallback((id: string) => {
-    setNotifications(ns => ns.map(n => (n.id === id ? { ...n, read: true } : n)));
-  }, []);
-  const markAllRead = useCallback(() => {
-    setNotifications(ns => ns.map(n => ({ ...n, read: true })));
-  }, []);
-
-  const login = useCallback(() => {
-    setUser(u => ({ ...u, authed: true }));
-    router.push("/dashboard");
+  const logout = useCallback(async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
   }, [router]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <AppContext.Provider value={{
-      user, currentHandle: CURRENT_HANDLE,
+      user: toMockUser(authUser),
+      authUser,
+      role: authUser?.role ?? null,
+      currentHandle: CURRENT_HANDLE,
       theme: appearance.theme, toggleTheme,
       appearance, setAppearance,
       notifications, unreadCount, markRead, markAllRead,
-      login,
+      logout,
     }}>
       {children}
     </AppContext.Provider>

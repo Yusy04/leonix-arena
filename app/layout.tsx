@@ -15,6 +15,8 @@ import "../styles/pages-settings.css";
 import "../styles/pages.css";
 import "../styles/theme-light.css";
 import { AppProvider } from "@/components/providers/AppProvider";
+import { getCurrentUser } from "@/lib/auth/session";
+import { toAuthUser } from "@/lib/auth/user";
 
 const hanken = Hanken_Grotesk({
   subsets: ["latin"],
@@ -31,11 +33,13 @@ export const metadata: Metadata = {
   title: "leonix arena — competitive programming training",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const dbUser = await getCurrentUser();
+  const authUser = dbUser ? toAuthUser(dbUser) : null;
   return (
     <html lang="en" className={`${hanken.variable} ${mono.variable}`}>
       <body>
-        <AppProvider>{children}</AppProvider>
+        <AppProvider initialUser={authUser}>{children}</AppProvider>
       </body>
     </html>
   );

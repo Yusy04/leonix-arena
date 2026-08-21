@@ -12,7 +12,7 @@ import { assetPath } from "@/lib/asset";
 export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, theme, toggleTheme, notifications, unreadCount, markRead, markAllRead } = useApp();
+  const { user, theme, toggleTheme, notifications, unreadCount, markRead, markAllRead, logout } = useApp();
 
   const [openProfile, setOpenProfile] = useState(false);
   const [openMobile, setOpenMobile] = useState(false);
@@ -126,7 +126,7 @@ export function TopNav() {
                         <a onClick={() => { router.push('/qr'); setOpenProfile(false); }}><Icon name="qr" size={14}/> My QR code</a>
                         <a onClick={() => { router.push('/profile'); setOpenProfile(false); }}><Icon name="settings" size={14}/> Account</a>
                         <div className="divider" style={{margin:'6px 0'}}/>
-                        <a onClick={() => { router.push('/login'); setOpenProfile(false); }}><Icon name="logout" size={14}/> Sign out</a>
+                        <a onClick={() => { setOpenProfile(false); logout(); }}><Icon name="logout" size={14}/> Sign out</a>
                       </div>
                     </div>
                   )}
