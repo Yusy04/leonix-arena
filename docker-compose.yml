@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: leonix
+      POSTGRES_PASSWORD: leonix
+      POSTGRES_DB: leonix
+    ports:
+      - "5433:5432"
+    volumes:
+      - leonix_pg:/var/lib/postgresql/data
+      - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql
+volumes:
+  leonix_pg:

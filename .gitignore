@@ -21,3 +21,8 @@ tsconfig.tsbuildinfo
 
 # Superpowers brainstorm scratch
 .superpowers/
+
+# Env
+.env
+.env.test
+.env*.local
