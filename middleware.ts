@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const SESSION_COOKIE = "leonix_session";
-const PROTECTED = ["/dashboard", "/notifications", "/settings", "/qr"];
+const PROTECTED = ["/dashboard", "/notifications", "/settings", "/qr", "/admin"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -19,5 +19,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/notifications/:path*", "/settings/:path*", "/qr/:path*"],
+  matcher: ["/dashboard/:path*", "/notifications/:path*", "/settings/:path*", "/qr/:path*", "/admin/:path*"],
 };

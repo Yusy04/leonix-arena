@@ -36,6 +36,8 @@ export function getProblemByCode(code: string) {
   return prisma.problem.findUnique({ where: { code }, include: PROBLEM_INCLUDE });
 }
 
+export type FullProblem = NonNullable<Awaited<ReturnType<typeof getProblemByCode>>>;
+
 /** Load a problem the actor is allowed to edit, or throw. */
 export async function requireManageableProblem(code: string, actor: Actor) {
   const problem = await prisma.problem.findUnique({ where: { code } });

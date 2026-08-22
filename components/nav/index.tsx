@@ -12,7 +12,7 @@ import { assetPath } from "@/lib/asset";
 export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, theme, toggleTheme, notifications, unreadCount, markRead, markAllRead, logout } = useApp();
+  const { user, role, theme, toggleTheme, notifications, unreadCount, markRead, markAllRead, logout } = useApp();
 
   const [openProfile, setOpenProfile] = useState(false);
   const [openMobile, setOpenMobile] = useState(false);
@@ -123,6 +123,7 @@ export function TopNav() {
                       <div className="profile-links">
                         <a onClick={() => { router.push('/dashboard'); setOpenProfile(false); }}><Icon name="home" size={14}/> Dashboard</a>
                         <a onClick={() => { router.push('/leaderboard'); setOpenProfile(false); }}><Icon name="trophy" size={14}/> Leaderboard</a>
+                        {(role === 'ADMIN' || role === 'HELPER') && <a onClick={() => { router.push('/admin/problems'); setOpenProfile(false); }}><Icon name="briefcase" size={14}/> Manage problems</a>}
                         <a onClick={() => { router.push('/qr'); setOpenProfile(false); }}><Icon name="qr" size={14}/> My QR code</a>
                         <a onClick={() => { router.push('/settings'); setOpenProfile(false); }}><Icon name="settings" size={14}/> Account</a>
                         <div className="divider" style={{margin:'6px 0'}}/>

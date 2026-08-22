@@ -1,0 +1,61 @@
+/* =========================================================
+   ADMIN — problem authoring (list + editor)
+   ========================================================= */
+
+.adm { padding: var(--s-8) 0 var(--s-16); }
+.adm-crumb { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12.5px; color: var(--fg-dim); margin-bottom: var(--s-4); }
+.adm-crumb a { color: var(--fg-muted); cursor: pointer; }
+.adm-crumb a:hover { color: var(--brand-400); }
+
+.adm-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: var(--s-4); }
+.adm-head h1 { font-size: 24px; }
+.adm-badges { display: flex; align-items: center; gap: 8px; }
+.adm-badge { font-family: var(--font-mono); font-size: 11px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--hairline-strong); color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.adm-badge.dim { color: var(--fg-dim); }
+.adm-badge.st-draft { color: var(--warning); border-color: rgba(245,180,97,0.4); background: var(--warning-bg); }
+.adm-badge.st-published { color: var(--brand-400); border-color: var(--border-brand); background: var(--brand-glow-soft); }
+.adm-badge.st-archived { color: var(--fg-dim); }
+.adm-inline { width: auto; padding: 6px 10px; }
+.adm-danger { color: var(--danger); }
+
+/* ---------- list table ---------- */
+.adm-table-wrap { padding: 4px 6px; overflow-x: auto; }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.adm-table thead th { text-align: left; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-dim); padding: 12px 10px; border-bottom: 1px solid var(--hairline-strong); }
+.adm-table tbody td { padding: 12px 10px; border-bottom: 1px solid var(--hairline); color: var(--fg); }
+.adm-table tbody tr:last-child td { border-bottom: 0; }
+.adm-row { cursor: pointer; }
+.adm-row:hover { background: rgba(84,232,23,0.04); }
+.adm-empty { text-align: center; color: var(--fg-dim); padding: 28px 0; }
+
+.adm-card { border: 1px solid var(--hairline); border-radius: var(--r-3); background: var(--surface); padding: 20px; }
+
+/* ---------- editor sections ---------- */
+.adm-sec { margin-bottom: var(--s-3); padding: 0; }
+.adm-sec-h { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; background: none; border: 0; cursor: pointer; font-size: 15px; font-weight: 700; color: var(--fg-strong); }
+.adm-sec-b { padding: 4px 18px 20px; border-top: 1px solid var(--hairline); }
+.adm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.adm-sec-b .field label { display: block; font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fg-muted); margin-bottom: 6px; }
+.adm-sec-b textarea.input { resize: vertical; font-family: inherit; }
+
+.adm-list { display: flex; flex-direction: column; gap: 0; margin: 12px 0; }
+.adm-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--hairline); }
+.adm-item:last-child { border-bottom: 0; }
+.adm-lang { min-width: 54px; color: var(--fg); }
+.adm-item-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.adm-tag { font-family: var(--font-mono); font-size: 10px; color: var(--bg); background: var(--brand-400); padding: 1px 6px; border-radius: 5px; margin-left: 8px; }
+.adm-link { background: none; border: 0; cursor: pointer; color: var(--brand-400); font-size: 12.5px; font-weight: 600; }
+.adm-link:hover { color: var(--brand-300); }
+.adm-link:disabled { color: var(--fg-faint); cursor: default; }
+.adm-link.adm-danger { color: var(--danger); }
+
+.adm-subform { border: 1px dashed var(--hairline-strong); border-radius: var(--r-2); padding: 14px; margin-top: 14px; }
+
+.adm-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.adm-tagchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--hairline-strong); border-radius: var(--r-pill); padding: 5px 12px; font-size: 13px; cursor: pointer; color: var(--fg-muted); }
+.adm-tagchip.on { border-color: var(--border-brand); background: var(--brand-glow-soft); color: var(--brand-200); }
+
+.adm-subrow { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--hairline); flex-wrap: wrap; }
+.adm-subrow:last-child { border-bottom: 0; }
+.adm-xs { width: 70px; }
+.adm-sm { width: 130px; }
