@@ -7,6 +7,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================================
+// Auth (existing)
+// ============================================================
+
 enum Role {
   STUDENT
   HELPER
@@ -26,6 +30,10 @@ model User {
   avatarHue    Int       @default(145)
   createdAt    DateTime  @default(now())
   sessions     Session[]
+
+  problemsCreated Problem[] @relation("ProblemCreatedBy")
+  problemsUpdated Problem[] @relation("ProblemUpdatedBy")
+  contestsCreated Contest[] @relation("ContestCreatedBy")
 }
 
 model Session {
@@ -35,4 +43,449 @@ model Session {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+// ============================================================
+// Problem domain — enums
+// ============================================================
+
+enum ProblemStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+  CONTEST_ONLY
+}
+
+enum ProblemType {
+  STANDARD
+  FUNCTION
+  INTERACTIVE
+}
+
+enum IoMode {
+  STDIN_STDOUT
+  FILES
+}
+
+// Default is exact/diff comparison; CUSTOM requires a CHECKER attachment.
+enum CheckerType {
+  DIFF
+  TOKEN
+  CUSTOM
+}
+
+// INDIVIDUAL = per-test weights (Type A). SUBTASK = grouped subtasks (Type B/C).
+enum ScoringType {
+  INDIVIDUAL
+  SUBTASK
+}
+
+// How a subtask selects its tests.
+enum SubtaskSelection {
+  EXPLICIT // via SubtaskTest rows
+  RANGE    // via rangeStart..rangeEnd over test index
+  REGEX    // via regexPattern matched against test name
+  ALL      // every enabled test
+}
+
+enum AttachmentKind {
+  GRADER
+  CHECKER
+  OTHER
+}
+
+// ============================================================
+// Storage abstraction — DB holds references only, never blobs
+// ============================================================
+
+model StorageObject {
+  id          String   @id @default(cuid())
+  driver      String   @default("local") // "local" | "s3" | ...
+  bucket      String?
+  key         String // deterministic path/key within the driver
+  size        Int?
+  contentType String?
+  checksum    String?
+  createdAt   DateTime @default(now())
+
+  images             ProblemImage[]
+  attachments        ProblemAttachment[]
+  testInputs         ProblemTest[]       @relation("TestInput")
+  testOutputs        ProblemTest[]       @relation("TestOutput")
+  editorialSolutions EditorialSolution[]
+}
+
+// ============================================================
+// Programming languages (reference table — not hardcoded)
+// ============================================================
+
+model ProgrammingLanguage {
+  id                    String   @id @default(cuid())
+  code                  String   @unique // "cpp", "python", "java", "rust", "c"
+  name                  String // "C++17"
+  fileExtension         String // "cpp"
+  defaultTimeMultiplier Float    @default(1.0) // Python = 5.0 → 5× baseline
+  defaultMemoryMb       Int?
+  active                Boolean  @default(true)
+  ordering              Int      @default(0)
+  createdAt             DateTime @default(now())
+
+  problemSettings    ProblemLanguageSetting[]
+  editorialSolutions EditorialSolution[]
+}
+
+// ============================================================
+// Problem — core identity + metadata + execution defaults
+// ============================================================
+
+model Problem {
+  id          String @id @default(cuid())
+  code        String @unique // human-readable slug, public identifier
+  title       String // canonical title (localized titles live in translations)
+  authorName  String? // credited human author
+
+  createdById String
+  createdBy   User    @relation("ProblemCreatedBy", fields: [createdById], references: [id])
+  updatedById String?
+  updatedBy   User?   @relation("ProblemUpdatedBy", fields: [updatedById], references: [id])
+
+  difficulty  Int           @default(1)
+  status      ProblemStatus @default(DRAFT)
+  visibility  Visibility    @default(PRIVATE)
+  type        ProblemType   @default(STANDARD)
+
+  ioMode      IoMode  @default(STDIN_STDOUT)
+  inputFile   String? // for FILES mode, e.g. "secv3.in"
+  outputFile  String? // for FILES mode, e.g. "secv3.out"
+
+  timeLimitMs   Int         @default(1000) // baseline (C++) time limit
+  memoryLimitMb Int         @default(256)
+  checkerType   CheckerType @default(DIFF)
+
+  originalLanguage String // natural-language code, must exist among translations
+  version          Int      @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  translations     ProblemTranslation[]
+  languageSettings ProblemLanguageSetting[]
+  tags             ProblemTag[]
+  sources          ProblemSource[]
+  images           ProblemImage[]
+  attachments      ProblemAttachment[]
+  tests            ProblemTest[]
+  samples          Sample[]
+  scoringScheme    ScoringScheme?
+  editorial        Editorial?
+  contestProblems  ContestProblem[]
+
+  @@index([status, visibility])
+  @@index([createdById])
+}
+
+// Localized statement — one complete statement per natural language.
+model ProblemTranslation {
+  id          String   @id @default(cuid())
+  problemId   String
+  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  language    String // "ro", "en"
+  title       String
+  statement   String
+  inputSpec   String?
+  outputSpec  String?
+  constraints String?
+  notes       String?
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([problemId, language])
+}
+
+// Per-problem/per-language execution settings. Null limits inherit from the
+// problem baseline × the language's defaultTimeMultiplier (see lib/problems/limits).
+model ProblemLanguageSetting {
+  id            String              @id @default(cuid())
+  problemId     String
+  problem       Problem             @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  languageId    String
+  language      ProgrammingLanguage @relation(fields: [languageId], references: [id])
+  enabled       Boolean             @default(true) // "allowed" submission language when true
+  timeLimitMs   Int? // explicit override
+  memoryLimitMb Int? // explicit override
+  solutionRef   String? // reference/editorial solution file ref
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@unique([problemId, languageId])
+}
+
+// ============================================================
+// Hierarchical tags & sources (same mechanism, distinct semantics)
+// ============================================================
+
+model Tag {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  parentId    String?
+  parent      Tag?     @relation("TagTree", fields: [parentId], references: [id])
+  children    Tag[]    @relation("TagTree")
+  description String?
+  ordering    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  problems ProblemTag[]
+}
+
+model ProblemTag {
+  id        String  @id @default(cuid())
+  problemId String
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([problemId, tagId])
+}
+
+model Source {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  parentId    String?
+  parent      Source?  @relation("SourceTree", fields: [parentId], references: [id])
+  children    Source[] @relation("SourceTree")
+  description String?
+  metadata    Json?
+  ordering    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  problems ProblemSource[]
+}
+
+model ProblemSource {
+  id        String  @id @default(cuid())
+  problemId String
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  sourceId  String
+  source    Source  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  ordering  Int     @default(0)
+
+  @@unique([problemId, sourceId])
+}
+
+// ============================================================
+// Images & attachments (grader/checker/other)
+// ============================================================
+
+model ProblemImage {
+  id              String         @id @default(cuid())
+  problemId       String
+  problem         Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  filename        String
+  storageObjectId String?
+  storageObject   StorageObject? @relation(fields: [storageObjectId], references: [id])
+  altText         String?
+  caption         String?
+  ordering        Int            @default(0)
+  createdAt       DateTime       @default(now())
+
+  @@index([problemId])
+}
+
+// At most one active GRADER and one active CHECKER per problem — enforced by a
+// partial unique index added in migration.
+model ProblemAttachment {
+  id              String         @id @default(cuid())
+  problemId       String
+  problem         Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  kind            AttachmentKind
+  filename        String
+  storageObjectId String?
+  storageObject   StorageObject? @relation(fields: [storageObjectId], references: [id])
+  language        String? // for language-specific grader/checker
+  active          Boolean        @default(true)
+  metadata        Json?
+  createdAt       DateTime       @default(now())
+
+  @@index([problemId, kind])
+}
+
+// ============================================================
+// Tests (file references) + samples (DB content)
+// ============================================================
+
+model ProblemTest {
+  id             String         @id @default(cuid())
+  problemId      String
+  problem        Problem        @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  name           String // used for regex/explicit selection, e.g. "test-01"
+  index          Int // ordering
+  inputObjectId  String?
+  inputObject    StorageObject? @relation("TestInput", fields: [inputObjectId], references: [id])
+  outputObjectId String?
+  outputObject   StorageObject? @relation("TestOutput", fields: [outputObjectId], references: [id])
+  enabled        Boolean        @default(true)
+  metadata       Json?
+  createdAt      DateTime       @default(now())
+
+  subtaskTests SubtaskTest[]
+
+  @@unique([problemId, name])
+  @@unique([problemId, index])
+}
+
+model Sample {
+  id          String   @id @default(cuid())
+  problemId   String
+  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  index       Int
+  input       String
+  output      String
+  explanation String?
+  createdAt   DateTime @default(now())
+
+  @@unique([problemId, index])
+}
+
+// ============================================================
+// Scoring — ScoringScheme / Subtask / SubtaskTest
+// ============================================================
+
+model ScoringScheme {
+  id          String      @id @default(cuid())
+  problemId   String      @unique
+  problem     Problem     @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  type        ScoringType @default(INDIVIDUAL)
+  totalPoints Int         @default(100)
+  rawConfig   Json? // original expression kept for reproducibility
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  subtasks Subtask[]
+}
+
+model Subtask {
+  id             String           @id @default(cuid())
+  schemeId       String
+  scheme         ScoringScheme    @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  index          Int
+  name           String?
+  points         Int
+  selection      SubtaskSelection @default(EXPLICIT)
+  regexPattern   String? // for REGEX selection
+  rangeStart     Int? // for RANGE selection (inclusive test index)
+  rangeEnd       Int? // for RANGE selection (inclusive test index)
+  minRequirement Int? // RESERVED: "Min pe subtask" — semantics intentionally undefined
+  createdAt      DateTime         @default(now())
+
+  tests SubtaskTest[]
+
+  @@unique([schemeId, index])
+}
+
+model SubtaskTest {
+  id        String      @id @default(cuid())
+  subtaskId String
+  subtask   Subtask     @relation(fields: [subtaskId], references: [id], onDelete: Cascade)
+  testId    String
+  test      ProblemTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([subtaskId, testId])
+}
+
+// ============================================================
+// Editorials (multilingual: description + videos + solutions)
+// ============================================================
+
+model Editorial {
+  id        String   @id @default(cuid())
+  problemId String   @unique
+  problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  translations EditorialTranslation[]
+}
+
+model EditorialTranslation {
+  id          String    @id @default(cuid())
+  editorialId String
+  editorial   Editorial @relation(fields: [editorialId], references: [id], onDelete: Cascade)
+  language    String // natural language: "ro", "en"
+  description String?
+  published   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  videos    EditorialVideo[]
+  solutions EditorialSolution[]
+
+  @@unique([editorialId, language])
+}
+
+model EditorialVideo {
+  id            String               @id @default(cuid())
+  translationId String
+  translation   EditorialTranslation @relation(fields: [translationId], references: [id], onDelete: Cascade)
+  url           String
+  title         String?
+  ordering      Int                  @default(0)
+  createdAt     DateTime             @default(now())
+}
+
+model EditorialSolution {
+  id              String               @id @default(cuid())
+  translationId   String
+  translation     EditorialTranslation @relation(fields: [translationId], references: [id], onDelete: Cascade)
+  languageId      String
+  language        ProgrammingLanguage  @relation(fields: [languageId], references: [id])
+  storageObjectId String?
+  storageObject   StorageObject?       @relation(fields: [storageObjectId], references: [id])
+  inlineSource    String? // small inline source, optional
+  ordering        Int                  @default(0)
+  createdAt       DateTime             @default(now())
+
+  @@unique([translationId, languageId])
+}
+
+// ============================================================
+// Contests (minimal) + associations
+// ============================================================
+
+model Contest {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String?
+  startsAt    DateTime?
+  endsAt      DateTime?
+  createdById String?
+  createdBy   User?     @relation("ContestCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  problems ContestProblem[]
+}
+
+model ContestProblem {
+  id        String  @id @default(cuid())
+  contestId String
+  contest   Contest @relation(fields: [contestId], references: [id], onDelete: Cascade)
+  problemId String
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  index     String // "A", "B", "1"
+  ordering  Int     @default(0)
+  points    Int?
+  settings  Json?
+
+  @@unique([contestId, problemId])
+  @@unique([contestId, index])
 }

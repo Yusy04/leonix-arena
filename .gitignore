@@ -26,3 +26,6 @@ tsconfig.tsbuildinfo
 .env
 .env.test
 .env*.local
+
+# Local problem file storage (dev filesystem driver)
+/storage/
