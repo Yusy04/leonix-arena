@@ -7,6 +7,7 @@ import { prisma } from "@/lib/db";
 // Reset the whole graph between tests. CASCADE handles FK order; RESTART
 // IDENTITY keeps things clean. Keep this list in sync with the schema.
 const TABLES = [
+  "Submission",
   "ContestProblem", "Contest",
   "SubtaskTest", "Subtask", "ScoringScheme",
   "EditorialSolution", "EditorialVideo", "EditorialTranslation", "Editorial",

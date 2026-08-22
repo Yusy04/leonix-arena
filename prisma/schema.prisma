@@ -31,9 +31,10 @@ model User {
   createdAt    DateTime  @default(now())
   sessions     Session[]
 
-  problemsCreated Problem[] @relation("ProblemCreatedBy")
-  problemsUpdated Problem[] @relation("ProblemUpdatedBy")
-  contestsCreated Contest[] @relation("ContestCreatedBy")
+  problemsCreated Problem[]    @relation("ProblemCreatedBy")
+  problemsUpdated Problem[]    @relation("ProblemUpdatedBy")
+  contestsCreated Contest[]    @relation("ContestCreatedBy")
+  submissions     Submission[]
 }
 
 model Session {
@@ -99,6 +100,15 @@ enum AttachmentKind {
   OTHER
 }
 
+enum Verdict {
+  AC
+  WA
+  TLE
+  RE
+  CE
+  PENDING
+}
+
 // ============================================================
 // Storage abstraction — DB holds references only, never blobs
 // ============================================================
@@ -137,6 +147,7 @@ model ProgrammingLanguage {
 
   problemSettings    ProblemLanguageSetting[]
   editorialSolutions EditorialSolution[]
+  submissions        Submission[]
 }
 
 // ============================================================
@@ -183,6 +194,7 @@ model Problem {
   scoringScheme    ScoringScheme?
   editorial        Editorial?
   contestProblems  ContestProblem[]
+  submissions      Submission[]
 
   @@index([status, visibility])
   @@index([createdById])
@@ -488,4 +500,28 @@ model ContestProblem {
 
   @@unique([contestId, problemId])
   @@unique([contestId, index])
+}
+
+// ============================================================
+// Submissions (judged attempts) — drives status/leaderboard/history
+// ============================================================
+
+model Submission {
+  id           String               @id @default(cuid())
+  problemId    String
+  problem      Problem              @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  languageId   String?
+  language     ProgrammingLanguage? @relation(fields: [languageId], references: [id])
+  verdict      Verdict              @default(PENDING)
+  score        Int                  @default(0)
+  maxTimeMs    Int?
+  peakMemoryMb Float?
+  source       String
+  groups       Json? // per-subtask/test breakdown for the detail view
+  createdAt    DateTime             @default(now())
+
+  @@index([problemId, createdAt])
+  @@index([userId, createdAt])
 }

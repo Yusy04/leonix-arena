@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaClient, Role } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedProblems } from "./seed-problems";
+import { seedCatalog } from "./seed-catalog";
 
 const prisma = new PrismaClient();
 
@@ -28,7 +29,10 @@ async function main() {
   await upsertUser("student@leonix.dev", "Demo Student", "student", "student12345", Role.STUDENT, "Iași", 320);
 
   const admin = await prisma.user.findUnique({ where: { email: adminEmail } });
-  if (admin) await seedProblems(prisma, admin.id);
+  if (admin) {
+    await seedProblems(prisma, admin.id);
+    await seedCatalog(prisma, admin.id);
+  }
 }
 
 main().then(() => prisma.$disconnect()).catch(async (e) => { console.error(e); await prisma.$disconnect(); process.exit(1); });

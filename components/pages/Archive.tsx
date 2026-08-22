@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
 import { assetPath } from "@/lib/asset";
+import type { ArchiveRow } from "@/lib/problems/public";
 
 /* ============================================================
    PROBLEM ARCHIVE  —  "Lista de probleme"
@@ -71,44 +72,6 @@ function flatIds(nodes: ANode[], acc: string[] = []): string[] {
   return acc;
 }
 
-/* ---------------- problems data ---------------- */
-const A_TITLES = ['Dumnuru','Sinr','Arborii','Backerf','Sinuri','Turn','Puterea','Aszdi','Adelin','Jurful','Nete','Pece','FCP214','Salt','Plumbera','X²+C','ABC','Grup','Gold','Mede','Racheta 4','Zebra','Zero Quarry','AVD','CTC','ETC','SwB','Furnirax','Aschii','Suiee','PC21','PlămADă','Soluție','Tablou'];
-const A_AUTHORS = ['Emilian Miron','Sorin Stancu-Mara','Cristian Cedar','Cătălin Francu','Filip Cristian Bunanu','Cosmin Săvescu Negucan','Doru Pădoe','Dori Pocket','Liviu Cofrasi','Doru Chitabos','Tiberiu Sîrău','Vlad Stănilă Băltescu','Vlad Stăculă','Mugurel Ionuț Andrica','Adrian Ceroștescu'];
-const A_SOURCES = ['Lec 2005 · G','PMC 2006 · G','Lot 2006 · G','Lista lui Francu · G','Summer Challenge 1 · G','Summer Challenge 2 · G','Summer Warmup 2006 · G','Autumn Warmup 2006 · G','Happy Coding 2006 · G'];
-
-interface Problem {
-  nr: number;
-  title: string;
-  author: string;
-  source: string;
-  editorial: string;
-  diff: number;
-  score: number | null;
-  solved: boolean;
-}
-
-function makeProblems(page: number): Problem[] {
-  const rows: Problem[] = [];
-  const base = (page - 1) * 41 + 250;
-  for (let i = 0; i < 30; i++) {
-    const seed = base + i;
-    const diff = ((seed * 7 + 3) % 6) + 1;
-    const locked = (seed % 9 === 3 || seed % 9 === 5);
-    const solved = !locked && (seed % 4 !== 0);
-    const noScore = (seed % 5 === 0);
-    rows.push({
-      nr: base + i,
-      title: A_TITLES[(seed) % A_TITLES.length],
-      author: A_AUTHORS[(seed * 3) % A_AUTHORS.length],
-      source: A_SOURCES[(seed) % A_SOURCES.length],
-      editorial: locked ? 'locked' : 'open',
-      diff,
-      score: (locked || noScore) ? null : 100,
-      solved,
-    });
-  }
-  return rows;
-}
 
 /* ---------------- small bits ---------------- */
 function CheckBox({ on }: { on: boolean }) {
@@ -212,17 +175,16 @@ function DropFoot({ count, onReset }: { count: React.ReactNode; onReset: () => v
 }
 
 /* ---------------- main page ---------------- */
-export default function Archive() {
+const PAGE_SIZE = 15;
+
+export function Archive({ problems, authed }: { problems: ArchiveRow[]; authed: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState<string | null>(null);
   const [tab, setTab] = useState('all');
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [sel, setSel] = useState<Record<string, Set<string>>>({
-    profesori: new Set(),
-    concurs:   new Set(['oni', 'oni-2018', 'oni-2019', 'oni-2019-1112']),
-    arie:      new Set(['grafuri', 'dijkstra']),
-    nivel:     new Set(['lvl3', 'lvl5', 'lvl7']),
-    editoriale:new Set(['open']),
+    profesori: new Set(), concurs: new Set(), arie: new Set(), nivel: new Set(), editoriale: new Set(),
   });
   const [expanded, setExpanded] = useState<Set<string>>(new Set(['grafuri', 'oni', 'oni-2019']));
 
@@ -232,20 +194,24 @@ export default function Archive() {
     return { ...s, [fkey]: next };
   });
   const reset = (fkey: string) => setSel(s => ({ ...s, [fkey]: new Set() }));
-  const resetAll = () => setSel({ profesori: new Set(), concurs: new Set(), arie: new Set(), nivel: new Set(), editoriale: new Set() });
+  const resetAll = () => { setSel({ profesori: new Set(), concurs: new Set(), arie: new Set(), nivel: new Set(), editoriale: new Set() }); setSearch(''); setTab('all'); };
   const toggleExpand = (id: string) => setExpanded(e => { const n = new Set(e); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
-  const allRows = useMemo(() => makeProblems(page), [page]);
-  const rows = useMemo(() => {
-    if (tab === 'solved')    return allRows.filter(p => p.solved);
-    if (tab === 'unsolved')  return allRows.filter(p => !p.solved && p.editorial !== 'locked');
-    if (tab === 'attempted') return allRows.filter(p => !p.solved);
-    return allRows;
-  }, [tab, allRows]);
+  const filtered = problems.filter(p => {
+    if (tab === 'solved' && !p.solved) return false;
+    if (tab === 'unsolved' && p.solved) return false;
+    if (tab === 'attempted' && (!p.attempted || p.solved)) return false;
+    const q = search.trim().toLowerCase();
+    if (q && !(p.title + ' ' + (p.author ?? '') + ' ' + (p.source ?? '') + ' ' + p.tags.join(' ')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const pageClamped = Math.min(page, totalPages);
+  const rows = filtered.slice((pageClamped - 1) * PAGE_SIZE, pageClamped * PAGE_SIZE);
+  const pages: number[] = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   const cnt = (fkey: string) => sel[fkey].size;
   const fieldVal = (fkey: string, fallback: string) => cnt(fkey) ? cnt(fkey) + ' selectate' : fallback;
-  const pages: (number | string)[] = [1,2,3,4,5,6,7,8,9,10,11,'…',44,45,46,47,48];
   const cols = [
     { ic: 'hash', t: 'NUMĂR' }, { ic: 'list', t: 'TITLUL PROBLEMEI' }, { ic: 'user', t: 'AUTOR' },
     { ic: 'bookmark', t: 'SURSA' }, { ic: 'book', t: 'EDITORIAL' }, { ic: 'chart', t: 'NIVEL DE DIFICULTATE' }, { ic: 'star', t: 'SCORUL TĂU' },
@@ -278,7 +244,7 @@ export default function Archive() {
           <span className="hud-corners"></span>
           <div className="af-mainsearch">
             <Icon name="search" size={18}/>
-            <input type="text" placeholder="Caută probleme după titlu, autor sau sursă…"/>
+            <input type="text" placeholder="Caută probleme după titlu, autor sau sursă…" value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}/>
             <span className="af-search-dot"></span>
           </div>
 
@@ -352,7 +318,7 @@ export default function Archive() {
       {/* status tabs */}
       <div className="arch-tabs">
         {[['all','Toate problemele'],['unsolved','Nerezolvate'],['attempted','Încercate'],['solved','Rezolvate']].map(([k,l]) => (
-          <button key={k} className={'arch-tab' + (tab === k ? ' is-active' : '')} onClick={() => setTab(k)}>{l}</button>
+          <button key={k} className={'arch-tab' + (tab === k ? ' is-active' : '')} onClick={() => { setTab(k); setPage(1); }}>{l}</button>
         ))}
       </div>
 
@@ -360,11 +326,11 @@ export default function Archive() {
       <div className="arch-pager">
         <span className="arch-pager-lbl mono">Vezi pagina</span>
         <div className="arch-pages">
-          {pages.map((p, i) => p === '…'
-            ? <span key={i} className="arch-ellip">…</span>
-            : <button key={i} className={'arch-page mono' + (page === p ? ' is-active' : '')} onClick={() => setPage(p as number)}>{p}</button>)}
+          {pages.map(p => (
+            <button key={p} className={'arch-page mono' + (pageClamped === p ? ' is-active' : '')} onClick={() => setPage(p)}>{p}</button>
+          ))}
         </div>
-        <span className="arch-results mono">(1971 rezultate)</span>
+        <span className="arch-results mono">({filtered.length} rezultate)</span>
         <button className="arch-reload" onClick={() => setPage(1)} aria-label="reload"><Icon name="refresh" size={16}/></button>
       </div>
 
@@ -376,19 +342,20 @@ export default function Archive() {
             <tr>{cols.map(c => <th key={c.t}><span className="th-in"><Icon name={c.ic} size={13}/> {c.t}</span></th>)}</tr>
           </thead>
           <tbody>
-            {rows.map(p => (
-              <tr key={p.nr} className="ar-row-link" onClick={() => router.push('/problem')} title="Open problem">
-                <td className="ar-nr mono">{p.nr}</td>
+            {rows.map((p, i) => (
+              <tr key={p.code} className="ar-row-link" onClick={() => router.push('/problem/' + p.code)} title="Open problem">
+                <td className="ar-nr mono">{(pageClamped - 1) * PAGE_SIZE + i + 1}</td>
                 <td className="ar-title"><span className="ar-check">{p.solved ? <Icon name="check" size={14} stroke={2.4}/> : null}</span><span className="ar-title-txt">{p.title}</span></td>
-                <td className="ar-author">{p.author}</td>
-                <td className="ar-source">{p.source}</td>
-                <td className="ar-ed">{p.editorial === 'locked'
-                  ? <span className="ed-locked">Locked <Icon name="lock" size={12}/></span>
-                  : <span className="ed-open">Open</span>}</td>
-                <td className="ar-diff"><span className={'diff-badge diff-' + p.diff}>{p.diff}</span></td>
-                <td className="ar-score">{p.score == null ? <span className="score-na">N/A</span> : <span className="score-v mono">{p.score}</span>}</td>
+                <td className="ar-author">{p.author ?? '—'}</td>
+                <td className="ar-source">{p.source ?? '—'}</td>
+                <td className="ar-ed">{p.editorialOpen
+                  ? <span className="ed-open">Open</span>
+                  : <span className="ed-locked">Locked <Icon name="lock" size={12}/></span>}</td>
+                <td className="ar-diff"><span className={'diff-badge diff-' + p.difficulty}>{p.difficulty}</span></td>
+                <td className="ar-score">{!authed || p.bestScore == null ? <span className="score-na">N/A</span> : <span className="score-v mono">{p.bestScore}</span>}</td>
               </tr>
             ))}
+            {rows.length === 0 && <tr><td colSpan={cols.length} style={{ textAlign: 'center', padding: '28px', color: 'var(--fg-dim)' }}>No problems match your filters.</td></tr>}
           </tbody>
         </table>
       </div>

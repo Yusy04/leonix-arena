@@ -1,2 +1,7 @@
+import { leaderboard } from "@/lib/users/queries";
 import { Leaderboard } from "@/components/pages/Extras";
-export default function Page() { return <Leaderboard />; }
+
+export default async function Page() {
+  const rows = await leaderboard();
+  return <Leaderboard rows={rows} />;
+}

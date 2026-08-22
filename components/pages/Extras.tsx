@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar, Icon } from "@/components/ui";
 import { useApp } from "@/components/providers/AppProvider";
-import { USERS } from "@/lib/mock";
 
 export function Buddy() {
   const [messages, setMessages] = useState([
@@ -76,24 +75,22 @@ export function Buddy() {
   );
 }
 
-export function Leaderboard() {
+export interface LbRow { rank: number; handle: string; name: string; hue: number; initial: string; solved: number; score: number }
+
+export function Leaderboard({ rows }: { rows: LbRow[] }) {
   const router = useRouter();
-  const { currentHandle } = useApp();
+  const { authUser } = useApp();
   const [scope, setScope] = useState('global');
-  const [period, setPeriod] = useState('week');
-  const data = USERS.slice(0, 8).map(u => ({
-    rank: u.rank, name: u.name, handle: u.handle, xp: u.xp, hue: u.hue,
-    streak: u.streak, solved: u.solved,
-    you: u.handle === currentHandle,
-    badge: u.rank === 1 ? '∞' : u.rank <= 3 ? '★' : '',
-  }));
+  const [period, setPeriod] = useState('all');
+  const data = rows.map(p => ({ ...p, you: p.handle === authUser?.handle, badge: p.rank === 1 ? '∞' : p.rank <= 3 ? '★' : '' }));
   const goTo = (handle: string) => router.push('/u/' + handle);
+  const podium = [data[1], data[0], data[2]].filter(Boolean);
   return (
     <div className="container-narrow">
       <div className="page-header">
         <span className="eyebrow">// leaderboard</span>
         <h1>Where you stand</h1>
-        <p className="subtitle">XP from accepted submissions, solved problems and daily streaks. Resets weekly.</p>
+        <p className="subtitle">Ranked by total points across all problems (best score per problem).</p>
       </div>
       <div className="row gap-3" style={{marginBottom: 16, flexWrap:'wrap'}}>
         <div className="tabs">
@@ -108,33 +105,32 @@ export function Leaderboard() {
         </div>
       </div>
 
-      <div className="podium">
-        {[data[1], data[0], data[2]].map((p, i) => {
-          const cls = ['silver','gold','bronze'][i];
-          const heights = [120, 160, 100];
-          return (
-            <div key={p.rank} className={'podium-col podium-' + cls} onClick={() => goTo(p.handle)} style={{cursor:'pointer'}}>
-              <Avatar initial={p.name[0]} hue={p.hue} size="lg"/>
-              <div className="strong">{p.name}</div>
-              <div className="t-xs mono dim">{p.xp.toLocaleString()} XP</div>
-              <div className="podium-block" style={{height: heights[i]}}>
-                <span className="mono podium-rank">{p.rank}</span>
+      {podium.length === 3 && (
+        <div className="podium">
+          {podium.map((p, i) => {
+            const cls = ['silver','gold','bronze'][i];
+            const heights = [120, 160, 100];
+            return (
+              <div key={p.rank} className={'podium-col podium-' + cls} onClick={() => goTo(p.handle)} style={{cursor:'pointer'}}>
+                <Avatar initial={p.initial} hue={p.hue} size="lg"/>
+                <div className="strong">{p.name}</div>
+                <div className="t-xs mono dim">{p.score.toLocaleString()} pts</div>
+                <div className="podium-block" style={{height: heights[i]}}><span className="mono podium-rank">{p.rank}</span></div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       <div className="card">
         <table className="table">
-          <thead><tr><th style={{width:60}}>#</th><th>Member</th><th>XP</th><th>Streak</th><th>Solved</th></tr></thead>
+          <thead><tr><th style={{width:60}}>#</th><th>Member</th><th>Points</th><th>Solved</th></tr></thead>
           <tbody>
             {data.map(p => (
               <tr key={p.rank} className={p.you ? 'is-you' : ''}>
                 <td className="mono strong">{p.rank}</td>
-                <td><div className="row gap-2 lb-name" onClick={() => goTo(p.handle)} style={{cursor:'pointer'}}><Avatar initial={p.name[0]} hue={p.hue} size="sm"/><span>{p.name} {p.badge && <span className="brand-fg mono">{p.badge}</span>}{p.you && <span className="badge is-success" style={{marginLeft:6}}>you</span>}</span></div></td>
-                <td className="mono">{p.xp.toLocaleString()}</td>
-                <td className="mono">{p.streak}d</td>
+                <td><div className="row gap-2 lb-name" onClick={() => goTo(p.handle)} style={{cursor:'pointer'}}><Avatar initial={p.initial} hue={p.hue} size="sm"/><span>{p.name} {p.badge && <span className="brand-fg mono">{p.badge}</span>}{p.you && <span className="badge is-success" style={{marginLeft:6}}>you</span>}</span></div></td>
+                <td className="mono">{p.score.toLocaleString()}</td>
                 <td className="mono">{p.solved}</td>
               </tr>
             ))}

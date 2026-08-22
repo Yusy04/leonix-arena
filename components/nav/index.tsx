@@ -210,7 +210,7 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
             <>
               <div className="cmd-group">Problems</div>
               {res.problems.slice(0, 4).map(p => (
-                <button key={p.id} className="cmd-item" onClick={() => go(() => router.push('/problem'))}>
+                <button key={p.id} className="cmd-item" onClick={() => go(() => router.push('/problem/' + p.id))}>
                   <Icon name="code" size={14}/>
                   <span style={{flex:1}}>{p.title}</span>
                   <span className="cmd-meta mono">{p.tags[0] ?? ''} · L{p.level}</span>

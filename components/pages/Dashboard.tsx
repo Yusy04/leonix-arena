@@ -3,18 +3,20 @@
 import { useRouter } from "next/navigation";
 import { HexChip, Icon, ProgressRing, Section } from "@/components/ui";
 import { useApp } from "@/components/providers/AppProvider";
-import { submissionsByUser } from "@/lib/mock";
 import { formatDate } from "@/lib/data";
 
-export function Dashboard() {
+export interface DashboardData {
+  solved: number;
+  submissionCount: number;
+  recent: { id: string; verdict: string; score: number; language: string; problemCode: string; problemTitle: string; submittedAt: string }[];
+  recommended: { code: string; title: string; difficulty: number; tag: string }[];
+}
+
+export function Dashboard({ data }: { data: DashboardData }) {
   const router = useRouter();
-  const { user, currentHandle } = useApp();
-  const recentSubs = submissionsByUser(currentHandle).slice(0, 4);
-  const recommended = [
-    { id:'r1', title:'Longest Increasing Subsequence', diff:'medium', diffLvl:3, tag:'dp' },
-    { id:'r2', title:'Union-Find Islands',             diff:'medium', diffLvl:3, tag:'dsu' },
-    { id:'r3', title:'Binary Search on Answer',        diff:'hard',   diffLvl:5, tag:'search' },
-  ];
+  const { user } = useApp();
+  const recentSubs = data.recent;
+  const recommended = data.recommended;
   const verdictClass = (v: string) => v === 'AC' ? 'is-success' : (v === 'TLE' ? 'is-warning' : 'is-danger');
 
   return (
@@ -59,15 +61,16 @@ export function Dashboard() {
           <Section eyebrow="// recommended for you" title="Problems to try next">
             <div className="stack-3">
               {recommended.map(r => (
-                <div key={r.id} className="card is-interactive cont-row" onClick={() => router.push('/problem')}>
-                  <span className={'diff-badge diff-' + r.diffLvl}>{r.diff}</span>
+                <div key={r.code} className="card is-interactive cont-row" onClick={() => router.push('/problem/' + r.code)}>
+                  <span className={'diff-badge diff-' + r.difficulty}>{r.difficulty}</span>
                   <div className="stack-2" style={{flex:1, minWidth:0}}>
-                    <div className="t-xs mono dim uppercase">{r.tag}</div>
+                    <div className="t-xs mono dim uppercase">{r.tag || 'problem'}</div>
                     <div className="strong" style={{fontSize:18}}>{r.title}</div>
                   </div>
                   <button className="btn btn-primary btn-sm">Solve <Icon name="arrow-r" size={12}/></button>
                 </div>
               ))}
+              {recommended.length === 0 && <div className="card card-body t-sm dim">You&apos;ve attempted everything available — nice.</div>}
             </div>
           </Section>
         </div>
@@ -93,10 +96,10 @@ export function Dashboard() {
                 </div>
               </div>
               <div className="wallet">
-                <HexChip value={12} unit="AC" size="md"/>
+                <HexChip value={data.solved} unit="AC" size="md"/>
                 <div className="wallet-meta">
                   <div className="wallet-name">Problems solved</div>
-                  <div className="wallet-bal">3 more than last week</div>
+                  <div className="wallet-bal">{data.submissionCount} total submissions</div>
                 </div>
               </div>
             </div>
