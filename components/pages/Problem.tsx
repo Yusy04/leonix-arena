@@ -42,6 +42,7 @@ int main() {
 /* ---------- STATEMENT ---------- */
 function PbStatement({ view }: { view: ProblemView }) {
   const s = view.statement;
+  const [showTags, setShowTags] = useState(false);
   return (
     <div className="pb-stmt">
       <h1 className="pb-h1">{s?.title ?? view.title}</h1>
@@ -74,7 +75,20 @@ function PbStatement({ view }: { view: ProblemView }) {
           </div>
         </div>
       ))}
-      {view.tags.length > 0 && <div className="pb-limits" style={{ marginTop: 18 }}>{view.tags.map(t => <span key={t} className="pb-limit mono">#{t}</span>)}</div>}
+      {view.tags.length > 0 && (
+        <div className="pb-tags" style={{ marginTop: 18 }}>
+          {!showTags ? (
+            <button className="pb-tags-btn" onClick={() => setShowTags(true)} title="Tags may hint at the approach">
+              <Icon name="lock" size={13}/> Show tags ({view.tags.length})
+            </button>
+          ) : (
+            <div className="pb-limits">
+              <button className="pb-tags-btn is-open" onClick={() => setShowTags(false)}><Icon name="close" size={12}/> Hide tags</button>
+              {view.tags.map(t => <span key={t} className="pb-limit mono">#{t}</span>)}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
