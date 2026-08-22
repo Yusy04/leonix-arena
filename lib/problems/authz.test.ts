@@ -10,15 +10,20 @@ describe("canCreateProblem", () => {
 });
 
 describe("canManageProblem", () => {
-  const problem = { createdById: "owner-1" };
+  const problem = { createdById: "owner-1", collaboratorIds: ["collab-1"] };
   it("admin manages any problem", () => {
     expect(canManageProblem({ id: "someone", role: "ADMIN" }, problem)).toBe(true);
   });
-  it("helper manages only their own", () => {
+  it("the creator manages their own", () => {
     expect(canManageProblem({ id: "owner-1", role: "HELPER" }, problem)).toBe(true);
+  });
+  it("a collaborator (co-author) manages it too", () => {
+    expect(canManageProblem({ id: "collab-1", role: "HELPER" }, problem)).toBe(true);
+  });
+  it("an unrelated helper cannot manage it", () => {
     expect(canManageProblem({ id: "other", role: "HELPER" }, problem)).toBe(false);
   });
-  it("student manages nothing", () => {
-    expect(canManageProblem({ id: "owner-1", role: "STUDENT" }, problem)).toBe(false);
+  it("an unrelated student cannot manage it", () => {
+    expect(canManageProblem({ id: "student", role: "STUDENT" }, problem)).toBe(false);
   });
 });

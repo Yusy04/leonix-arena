@@ -31,10 +31,11 @@ model User {
   createdAt    DateTime  @default(now())
   sessions     Session[]
 
-  problemsCreated Problem[]    @relation("ProblemCreatedBy")
-  problemsUpdated Problem[]    @relation("ProblemUpdatedBy")
-  contestsCreated Contest[]    @relation("ContestCreatedBy")
+  problemsCreated Problem[]              @relation("ProblemCreatedBy")
+  problemsUpdated Problem[]              @relation("ProblemUpdatedBy")
+  contestsCreated Contest[]              @relation("ContestCreatedBy")
   submissions     Submission[]
+  collaborations  ProblemCollaborator[]
 }
 
 model Session {
@@ -195,6 +196,7 @@ model Problem {
   editorial        Editorial?
   contestProblems  ContestProblem[]
   submissions      Submission[]
+  collaborators    ProblemCollaborator[]
 
   @@index([status, visibility])
   @@index([createdById])
@@ -500,6 +502,19 @@ model ContestProblem {
 
   @@unique([contestId, problemId])
   @@unique([contestId, index])
+}
+
+// Co-authors: any collaborator (plus the creator and admins) can fully manage
+// the problem — same privilege as the original author.
+model ProblemCollaborator {
+  id        String   @id @default(cuid())
+  problemId String
+  problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addedAt   DateTime @default(now())
+
+  @@unique([problemId, userId])
 }
 
 // ============================================================

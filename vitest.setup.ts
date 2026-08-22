@@ -13,6 +13,7 @@ const TABLES = [
   "EditorialSolution", "EditorialVideo", "EditorialTranslation", "Editorial",
   "ProblemTest", "Sample", "ProblemImage", "ProblemAttachment",
   "ProblemTag", "ProblemSource", "ProblemTranslation", "ProblemLanguageSetting",
+  "ProblemCollaborator",
   "Problem", "Tag", "Source", "ProgrammingLanguage", "StorageObject",
   "Session", "User",
 ];

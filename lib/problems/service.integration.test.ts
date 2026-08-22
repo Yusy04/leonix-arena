@@ -10,6 +10,7 @@ import { setScoring } from "@/lib/problems/scoring-service";
 import { setAttachment, addImage } from "@/lib/problems/attachments-service";
 import { upsertEditorialTranslation, addEditorialSolution, addEditorialVideo } from "@/lib/problems/editorials-service";
 import { createContest, attachToContest } from "@/lib/problems/contests-service";
+import { addCollaborator, removeCollaborator } from "@/lib/problems/collaborators";
 
 let admin: Actor;
 let helper: Actor;
@@ -178,6 +179,36 @@ describe("contest associations", () => {
     // duplicate index within the same contest → 409
     await createProblem(baseProblem("alt"), helper);
     await expect(attachToContest("alt", { contestSlug: "oni-2019", index: "A" }, helper)).rejects.toMatchObject({ status: 409 });
+  });
+});
+
+describe("collaborators (co-authors)", () => {
+  it("a co-author gains full edit rights; removing them revokes it", async () => {
+    await createProblem(baseProblem(), helper);
+    // another helper cannot edit initially
+    await expect(updateProblem("secv3", { title: "x" }, otherHelper)).rejects.toMatchObject({ status: 403 });
+    // add them as a co-author (by handle)
+    const list = await addCollaborator("secv3", "h2", helper);
+    expect(list).toHaveLength(1);
+    // now they can edit
+    const p = await updateProblem("secv3", { title: "By Co-author" }, otherHelper);
+    expect(p.title).toBe("By Co-author");
+    // and they can add tests, etc. (full rights)
+    await createTest("secv3", { name: "test-01", input: "1", output: "1" }, otherHelper);
+    // removing revokes
+    await removeCollaborator("secv3", otherHelper.id, helper);
+    await expect(updateProblem("secv3", { title: "again" }, otherHelper)).rejects.toMatchObject({ status: 403 });
+  });
+
+  it("rejects adding a student as a co-author", async () => {
+    await createProblem(baseProblem(), helper);
+    await prisma.user.create({ data: { email: "stu@x.com", handle: "stu", name: "Stu", passwordHash: await hashPassword("password123"), role: "STUDENT" } });
+    await expect(addCollaborator("secv3", "stu", helper)).rejects.toMatchObject({ status: 400 });
+  });
+
+  it("only a manager can add co-authors", async () => {
+    await createProblem(baseProblem(), helper);
+    await expect(addCollaborator("secv3", "h2", otherHelper)).rejects.toMatchObject({ status: 403 });
   });
 });
 

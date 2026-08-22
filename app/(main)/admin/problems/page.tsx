@@ -9,7 +9,9 @@ export default async function Page() {
   if (!user) redirect("/login?next=/admin/problems");
   if (!canCreateProblem(user.role)) redirect("/dashboard");
 
-  const where = user.role === "ADMIN" ? {} : { createdById: user.id };
+  const where = user.role === "ADMIN"
+    ? {}
+    : { OR: [{ createdById: user.id }, { collaborators: { some: { userId: user.id } } }] };
   const problems = await prisma.problem.findMany({
     where,
     orderBy: { updatedAt: "desc" },

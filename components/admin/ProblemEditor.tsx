@@ -62,10 +62,41 @@ export function ProblemEditor({ initial, allTags, languages }: { initial: FullPr
       <TagsSection initial={initial} allTags={allTags} api={api} base={base}/>
       <TestsSection initial={initial} api={api} base={base}/>
       <ScoringSection initial={initial} api={api} base={base}/>
+      <CollaboratorsSection initial={initial} api={api} base={base}/>
       <EditorialSection initial={initial} languages={languages} api={api} base={base}/>
       <FilesSection initial={initial} api={api} base={base}/>
       <ContestSection api={api} base={base}/>
     </div>
+  );
+}
+
+function CollaboratorsSection({ initial, api, base }: { initial: FullProblem; api: Api; base: string }) {
+  const [handle, setHandle] = useState("");
+  return (
+    <Section title={`Co-authors (${initial.collaborators.length + 1})`}>
+      <p className="st-sub">The author and every co-author (and any admin) have equal, full edit rights on this problem.</p>
+      <div className="adm-list">
+        <div className="adm-item">
+          <span className="mono adm-lang">@{initial.createdBy.handle}</span>
+          <span className="adm-item-title">{initial.createdBy.name}</span>
+          <span className="adm-tag">author</span>
+        </div>
+        {initial.collaborators.map(c => (
+          <div key={c.id} className="adm-item">
+            <span className="mono adm-lang">@{c.user.handle}</span>
+            <span className="adm-item-title">{c.user.name}</span>
+            <button className="adm-link adm-danger" onClick={() => api(base + "/collaborators/" + c.userId, "DELETE")}>Remove</button>
+          </div>
+        ))}
+      </div>
+      <div className="adm-subform stack-3">
+        <div className="strong t-sm">Add a co-author (admin or helper)</div>
+        <div className="adm-grid">
+          <div className="field"><label>Handle or email</label><input className="input mono" value={handle} onChange={e => setHandle(e.target.value)} placeholder="helper"/></div>
+        </div>
+        <button className="btn btn-secondary btn-sm" onClick={async () => { const r = await api(base + "/collaborators", "POST", { handle }); if (r) setHandle(""); }}>Add co-author</button>
+      </div>
+    </Section>
   );
 }
 

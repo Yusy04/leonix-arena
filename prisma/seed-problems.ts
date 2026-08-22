@@ -166,5 +166,15 @@ export async function seedProblems(prisma: PrismaClient, adminId: string) {
     create: { contestId: contest.id, problemId: problem.id, index: "A", ordering: 0, points: 100 },
   });
 
-  console.log("seeded problem: secv3 (translations, tags, sources, tests, scoring, samples, image, editorial, contest)");
+  // demo co-author: the helper account can also fully manage secv3
+  const helper = await prisma.user.findUnique({ where: { email: "helper@leonix.dev" }, select: { id: true } });
+  if (helper) {
+    await prisma.problemCollaborator.upsert({
+      where: { problemId_userId: { problemId: problem.id, userId: helper.id } },
+      update: {},
+      create: { problemId: problem.id, userId: helper.id },
+    });
+  }
+
+  console.log("seeded problem: secv3 (translations, tags, sources, tests, scoring, samples, image, editorial, contest, co-author)");
 }

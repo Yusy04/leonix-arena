@@ -29,6 +29,7 @@ export const PROBLEM_INCLUDE = {
   scoringScheme: { include: { subtasks: { orderBy: { index: "asc" }, include: { tests: true } } } },
   editorial: { include: { translations: { include: { videos: true, solutions: { include: { language: true } } } } } },
   contestProblems: { include: { contest: true } },
+  collaborators: { include: { user: { select: { id: true, handle: true, name: true, avatarHue: true } } } },
   createdBy: { select: { id: true, handle: true, name: true } },
 } satisfies Prisma.ProblemInclude;
 
@@ -40,9 +41,11 @@ export type FullProblem = NonNullable<Awaited<ReturnType<typeof getProblemByCode
 
 /** Load a problem the actor is allowed to edit, or throw. */
 export async function requireManageableProblem(code: string, actor: Actor) {
-  const problem = await prisma.problem.findUnique({ where: { code } });
+  const problem = await prisma.problem.findUnique({ where: { code }, include: { collaborators: { select: { userId: true } } } });
   if (!problem) throw new ServiceError(404, "Problem not found.");
-  if (!canManageProblem(actor, problem)) throw new ServiceError(403, "You do not have permission to edit this problem.");
+  if (!canManageProblem(actor, { createdById: problem.createdById, collaboratorIds: problem.collaborators.map(c => c.userId) })) {
+    throw new ServiceError(403, "You do not have permission to edit this problem.");
+  }
   return problem;
 }
 
