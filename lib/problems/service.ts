@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import type { ProblemType, IoMode, Visibility, CheckerType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { validateProblem } from "@/lib/problems/validation";
+import { sanitizeStatement } from "@/lib/problems/sanitize";
 import { canCreateProblem, canManageProblem, type Actor } from "@/lib/problems/authz";
 
 /** Error carrying an HTTP status + optional field errors for route handlers. */
@@ -147,11 +148,11 @@ export async function createProblem(input: CreateProblemInput, actor: Actor) {
         create: [{
           language: input.statement.language,
           title: input.statement.title,
-          statement: input.statement.statement,
-          inputSpec: input.statement.inputSpec ?? null,
-          outputSpec: input.statement.outputSpec ?? null,
-          constraints: input.statement.constraints ?? null,
-          notes: input.statement.notes ?? null,
+          statement: sanitizeStatement(input.statement.statement),
+          inputSpec: input.statement.inputSpec ? sanitizeStatement(input.statement.inputSpec) : null,
+          outputSpec: input.statement.outputSpec ? sanitizeStatement(input.statement.outputSpec) : null,
+          constraints: input.statement.constraints ? sanitizeStatement(input.statement.constraints) : null,
+          notes: input.statement.notes ? sanitizeStatement(input.statement.notes) : null,
           published: true,
         }],
       },

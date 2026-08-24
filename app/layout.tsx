@@ -13,6 +13,7 @@ import "../styles/pages-notifications.css";
 import "../styles/pages-search.css";
 import "../styles/pages-settings.css";
 import "../styles/pages-admin.css";
+import "../styles/rich.css";
 import "../styles/pages.css";
 import "../styles/theme-light.css";
 import { AppProvider } from "@/components/providers/AppProvider";

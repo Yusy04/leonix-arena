@@ -55,11 +55,11 @@ function PbStatement({ view }: { view: ProblemView }) {
 
       {s ? (
         <>
-          {s.statement.split("\n").filter(Boolean).map((p, i) => <p key={i} className="pb-p">{p}</p>)}
-          {s.inputSpec && <><div className="pb-sec"><span className="pb-dot"></span>STANDARD INPUT</div><p className="pb-p">{s.inputSpec}</p></>}
-          {s.outputSpec && <><div className="pb-sec"><span className="pb-dot"></span>STANDARD OUTPUT</div><p className="pb-p">{s.outputSpec}</p></>}
-          {s.constraints && <><div className="pb-sec"><span className="pb-dot"></span>RESTRICTIONS AND NOTES</div><p className="pb-p">{s.constraints}</p></>}
-          {s.notes && <p className="pb-p">{s.notes}</p>}
+          <div className="pb-rich" dangerouslySetInnerHTML={{ __html: s.statement || "" }} />
+          {s.inputSpec && <><div className="pb-sec"><span className="pb-dot"></span>STANDARD INPUT</div><div className="pb-rich" dangerouslySetInnerHTML={{ __html: s.inputSpec }} /></>}
+          {s.outputSpec && <><div className="pb-sec"><span className="pb-dot"></span>STANDARD OUTPUT</div><div className="pb-rich" dangerouslySetInnerHTML={{ __html: s.outputSpec }} /></>}
+          {s.constraints && <><div className="pb-sec"><span className="pb-dot"></span>RESTRICTIONS AND NOTES</div><div className="pb-rich" dangerouslySetInnerHTML={{ __html: s.constraints }} /></>}
+          {s.notes && <div className="pb-rich" dangerouslySetInnerHTML={{ __html: s.notes }} />}
         </>
       ) : <p className="pb-p dim">No published statement for this problem yet.</p>}
 

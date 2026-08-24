@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { ServiceError, requireManageableProblem } from "@/lib/problems/service";
+import { sanitizeStatement } from "@/lib/problems/sanitize";
 import type { Actor } from "@/lib/problems/authz";
 
 export interface TranslationInput {
@@ -28,11 +29,11 @@ export async function addTranslation(code: string, input: TranslationInput, acto
       problemId: problem.id,
       language: input.language,
       title: input.title,
-      statement: input.statement,
-      inputSpec: input.inputSpec ?? null,
-      outputSpec: input.outputSpec ?? null,
-      constraints: input.constraints ?? null,
-      notes: input.notes ?? null,
+      statement: sanitizeStatement(input.statement),
+      inputSpec: input.inputSpec ? sanitizeStatement(input.inputSpec) : null,
+      outputSpec: input.outputSpec ? sanitizeStatement(input.outputSpec) : null,
+      constraints: input.constraints ? sanitizeStatement(input.constraints) : null,
+      notes: input.notes ? sanitizeStatement(input.notes) : null,
       published: input.published ?? false,
     },
   });
@@ -48,11 +49,11 @@ export async function updateTranslation(code: string, language: string, input: P
     where: { id: existing.id },
     data: {
       title: input.title ?? undefined,
-      statement: input.statement ?? undefined,
-      inputSpec: input.inputSpec === undefined ? undefined : input.inputSpec,
-      outputSpec: input.outputSpec === undefined ? undefined : input.outputSpec,
-      constraints: input.constraints === undefined ? undefined : input.constraints,
-      notes: input.notes === undefined ? undefined : input.notes,
+      statement: input.statement === undefined ? undefined : sanitizeStatement(input.statement),
+      inputSpec: input.inputSpec === undefined ? undefined : (input.inputSpec ? sanitizeStatement(input.inputSpec) : null),
+      outputSpec: input.outputSpec === undefined ? undefined : (input.outputSpec ? sanitizeStatement(input.outputSpec) : null),
+      constraints: input.constraints === undefined ? undefined : (input.constraints ? sanitizeStatement(input.constraints) : null),
+      notes: input.notes === undefined ? undefined : (input.notes ? sanitizeStatement(input.notes) : null),
       published: input.published ?? undefined,
     },
   });

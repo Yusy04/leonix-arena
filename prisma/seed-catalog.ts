@@ -21,8 +21,8 @@ const parseMb = (m: string) => { const n = parseFloat(m); return isNaN(n) ? null
 
 const STATEMENT = (title: string, en = false) =>
   en
-    ? `In the problem "${title}", you are given the input described below. Compute the requested value efficiently within the given limits.`
-    : `În problema „${title}”, se dă intrarea descrisă mai jos. Calculați valoarea cerută eficient, în limitele date.`;
+    ? `<p>In the problem <strong>${title}</strong>, you are given the input described below. Compute the requested value efficiently within the given limits.</p><p>Read the input from standard input and print the answer to standard output.</p>`
+    : `<p>În problema <strong>${title}</strong>, se dă intrarea descrisă mai jos. Calculați valoarea cerută eficient, în limitele date.</p><p>Citiți datele de la intrarea standard și afișați rezultatul la ieșirea standard.</p>`;
 
 /** Seeds a broad, realistic catalogue: languages, competitor users, hierarchical
  * tags & sources, ~20 published problems (translations/tags/source/settings/
@@ -90,8 +90,8 @@ export async function seedCatalog(prisma: PrismaClient, adminId: string) {
         difficulty: spec.level, status: "PUBLISHED", visibility: "PUBLIC", type: spec.type ?? "STANDARD",
         timeLimitMs: 1000 + (spec.level > 4 ? 1000 : 0), memoryLimitMb: 256, originalLanguage: "ro",
         translations: { create: [
-          { language: "ro", title: spec.title, statement: STATEMENT(spec.title), inputSpec: "Datele de intrare.", outputSpec: "Rezultatul cerut.", constraints: "1 ≤ N ≤ 100000", published: true },
-          { language: "en", title: spec.titleEn, statement: STATEMENT(spec.titleEn, true), inputSpec: "The input data.", outputSpec: "The requested result.", constraints: "1 ≤ N ≤ 100000", published: true },
+          { language: "ro", title: spec.title, statement: STATEMENT(spec.title), inputSpec: "<p>Prima linie conține un întreg <code>N</code>. Următoarea linie conține <code>N</code> numere.</p>", outputSpec: "<p>Rezultatul cerut, pe o singură linie.</p>", constraints: "<ul><li>1 ≤ N ≤ 100000</li></ul>", published: true },
+          { language: "en", title: spec.titleEn, statement: STATEMENT(spec.titleEn, true), inputSpec: "<p>The first line contains an integer <code>N</code>. The next line contains <code>N</code> numbers.</p>", outputSpec: "<p>The requested result, on a single line.</p>", constraints: "<ul><li>1 ≤ N ≤ 100000</li></ul>", published: true },
         ] },
         languageSettings: { create: [{ languageId: cpp.id }, { languageId: py.id }, { languageId: java.id }] },
         sources: { create: [{ sourceId: await ensureSource(spec.source) }] },

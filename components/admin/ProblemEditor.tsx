@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
+import { RichEditor } from "@/components/admin/RichEditor";
 import type { FullProblem } from "@/lib/problems/service";
 
 type Tag = { slug: string; name: string };
@@ -143,35 +144,81 @@ function BasicSection({ initial, api, base }: { initial: FullProblem; api: Api; 
   );
 }
 
+interface TrInit { language: string; title: string; statement: string; inputSpec: string | null; outputSpec: string | null; constraints: string | null; notes: string | null }
+
+function TranslationForm({ code, base, api, initial, isNew, onDone }: { code: string; base: string; api: Api; initial?: TrInit; isNew: boolean; onDone: () => void }) {
+  const [language, setLanguage] = useState(initial?.language ?? "");
+  const [title, setTitle] = useState(initial?.title ?? "");
+  const [statement, setStatement] = useState(initial?.statement ?? "");
+  const [inputSpec, setInputSpec] = useState(initial?.inputSpec ?? "");
+  const [outputSpec, setOutputSpec] = useState(initial?.outputSpec ?? "");
+  const [constraints, setConstraints] = useState(initial?.constraints ?? "");
+  const [notes, setNotes] = useState(initial?.notes ?? "");
+  const [busy, setBusy] = useState(false);
+
+  const save = async () => {
+    setBusy(true);
+    const payload = { title, statement, inputSpec, outputSpec, constraints, notes };
+    const r = isNew
+      ? await api(base + "/translations", "POST", { language, published: true, ...payload })
+      : await api(base + "/translations/" + initial!.language, "PATCH", payload);
+    setBusy(false);
+    if (r) onDone();
+  };
+
+  return (
+    <>
+      <div className="adm-grid">
+        {isNew && <div className="field"><label>Language</label><input className="input mono" value={language} onChange={e => setLanguage(e.target.value)} placeholder="en"/></div>}
+        <div className="field"><label>Title</label><input className="input" value={title} onChange={e => setTitle(e.target.value)}/></div>
+      </div>
+      <div className="field"><label>Statement</label><RichEditor value={statement} onChange={setStatement} code={code}/></div>
+      <div className="field"><label>Input</label><RichEditor value={inputSpec} onChange={setInputSpec} code={code}/></div>
+      <div className="field"><label>Output</label><RichEditor value={outputSpec} onChange={setOutputSpec} code={code}/></div>
+      <div className="field"><label>Constraints</label><RichEditor value={constraints} onChange={setConstraints} code={code}/></div>
+      <div className="field"><label>Notes</label><RichEditor value={notes} onChange={setNotes} code={code}/></div>
+      <div className="row gap-2">
+        <button className="btn btn-secondary btn-sm" onClick={onDone}>Cancel</button>
+        <button className="btn btn-primary btn-sm" onClick={save} disabled={busy || (isNew && !language)}>{busy ? "Saving…" : isNew ? "Add translation" : "Save translation"}</button>
+      </div>
+    </>
+  );
+}
+
 function StatementsSection({ initial, api, base }: { initial: FullProblem; api: Api; base: string }) {
-  const [n, setN] = useState({ language: "", title: "", statement: "", inputSpec: "", outputSpec: "", constraints: "", notes: "" });
+  const [editing, setEditing] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   return (
     <Section title={`Statements (${initial.translations.length})`}>
+      <p className="st-sub">Rich formatting and inline images — colors always follow the site theme.</p>
       <div className="adm-list">
         {initial.translations.map(t => (
-          <div key={t.id} className="adm-item">
-            <span className="mono adm-lang">{t.language}{t.language === initial.originalLanguage && <span className="adm-tag">original</span>}</span>
-            <span className="adm-item-title">{t.title}</span>
-            <span className="row gap-2">
-              {t.language !== initial.originalLanguage && <button className="adm-link" onClick={() => api(base + "/original-language", "POST", { language: t.language })}>Set original</button>}
-              {t.language !== initial.originalLanguage && <button className="adm-link adm-danger" onClick={() => api(base + "/translations/" + t.language, "DELETE")}>Delete</button>}
-            </span>
+          <div key={t.id}>
+            <div className="adm-item">
+              <span className="mono adm-lang">{t.language}{t.language === initial.originalLanguage && <span className="adm-tag">original</span>}</span>
+              <span className="adm-item-title">{t.title}</span>
+              <span className="row gap-2">
+                <button className="adm-link" onClick={() => setEditing(editing === t.language ? null : t.language)}>{editing === t.language ? "Close" : "Edit"}</button>
+                {t.language !== initial.originalLanguage && <button className="adm-link" onClick={() => api(base + "/original-language", "POST", { language: t.language })}>Set original</button>}
+                {t.language !== initial.originalLanguage && <button className="adm-link adm-danger" onClick={() => api(base + "/translations/" + t.language, "DELETE")}>Delete</button>}
+              </span>
+            </div>
+            {editing === t.language && (
+              <div className="adm-subform stack-3">
+                <TranslationForm code={initial.code} base={base} api={api} initial={t} isNew={false} onDone={() => setEditing(null)}/>
+              </div>
+            )}
           </div>
         ))}
       </div>
-      <div className="adm-subform stack-3">
-        <div className="strong t-sm">Add a translation</div>
-        <div className="adm-grid">
-          <div className="field"><label>Language</label><input className="input mono" value={n.language} onChange={e => setN({ ...n, language: e.target.value })} placeholder="en"/></div>
-          <div className="field"><label>Title</label><input className="input" value={n.title} onChange={e => setN({ ...n, title: e.target.value })}/></div>
+      {adding ? (
+        <div className="adm-subform stack-3">
+          <div className="strong t-sm">New translation</div>
+          <TranslationForm code={initial.code} base={base} api={api} isNew onDone={() => setAdding(false)}/>
         </div>
-        <div className="field"><label>Statement</label><textarea className="input" rows={3} value={n.statement} onChange={e => setN({ ...n, statement: e.target.value })}/></div>
-        <div className="adm-grid">
-          <div className="field"><label>Input</label><textarea className="input" rows={2} value={n.inputSpec} onChange={e => setN({ ...n, inputSpec: e.target.value })}/></div>
-          <div className="field"><label>Output</label><textarea className="input" rows={2} value={n.outputSpec} onChange={e => setN({ ...n, outputSpec: e.target.value })}/></div>
-        </div>
-        <button className="btn btn-secondary btn-sm" onClick={async () => { const r = await api(base + "/translations", "POST", { ...n, published: true }); if (r) setN({ language: "", title: "", statement: "", inputSpec: "", outputSpec: "", constraints: "", notes: "" }); }}>Add translation</button>
-      </div>
+      ) : (
+        <button className="btn btn-secondary btn-sm" onClick={() => setAdding(true)}><Icon name="plus" size={12}/> Add translation</button>
+      )}
     </Section>
   );
 }

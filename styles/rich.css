@@ -1,0 +1,47 @@
+/* =========================================================
+   RICH TEXT — WYSIWYG editor chrome + rendered statement.
+   The same `.pb-rich` styles drive both, so what authors see
+   matches the problem page. All colors come from the theme —
+   authors cannot override them.
+   ========================================================= */
+
+/* ---------- editor shell ---------- */
+.rich-editor { border: 1px solid var(--hairline-strong); border-radius: var(--r-2); background: var(--surface-2); overflow: hidden; }
+.re-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; padding: 6px 8px; border-bottom: 1px solid var(--hairline); background: var(--surface-3); }
+.re-btn { min-width: 30px; height: 28px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid transparent; border-radius: 6px; background: none; color: var(--fg-muted); font-size: 13px; font-family: var(--font-mono); cursor: pointer; }
+.re-btn:hover { background: var(--surface-glass); color: var(--fg); }
+.re-btn.on { background: var(--brand-glow-soft); color: var(--brand-200); border-color: var(--border-brand); }
+.re-sep { width: 1px; align-self: stretch; margin: 4px 3px; background: var(--hairline-strong); }
+.re-content { min-height: 120px; max-height: 460px; overflow-y: auto; padding: 12px 14px; outline: none; }
+.re-content:focus { outline: none; }
+.re-loading { color: var(--fg-dim); font-size: 13px; }
+
+/* ---------- shared rendered content ---------- */
+.pb-rich { color: var(--fg); font-size: 15px; line-height: 1.65; }
+.pb-rich > :first-child { margin-top: 0; }
+.pb-rich > :last-child { margin-bottom: 0; }
+.pb-rich p { margin: 0 0 12px; }
+.pb-rich h1, .pb-rich h2, .pb-rich h3, .pb-rich h4 { color: var(--fg-strong); font-weight: 700; line-height: 1.25; margin: 22px 0 10px; }
+.pb-rich h1 { font-size: 24px; }
+.pb-rich h2 { font-size: 20px; }
+.pb-rich h3 { font-size: 17px; color: var(--brand-300); }
+.pb-rich h4 { font-size: 15px; }
+.pb-rich strong, .pb-rich b { color: var(--fg-strong); font-weight: 700; }
+.pb-rich em, .pb-rich i { font-style: italic; }
+.pb-rich a { color: var(--brand-400); text-decoration: underline; text-underline-offset: 2px; }
+.pb-rich a:hover { color: var(--brand-300); }
+.pb-rich ul, .pb-rich ol { margin: 0 0 12px; padding-left: 24px; }
+.pb-rich li { margin: 3px 0; }
+.pb-rich li > p { margin: 0; }
+.pb-rich blockquote { margin: 14px 0; padding: 6px 16px; border-left: 3px solid var(--border-brand); background: var(--brand-glow-soft); color: var(--fg-muted); border-radius: 0 6px 6px 0; }
+.pb-rich code { font-family: var(--font-mono); font-size: 0.9em; background: var(--surface-3); border: 1px solid var(--hairline); border-radius: 4px; padding: 1px 5px; color: var(--brand-300); }
+.pb-rich pre { margin: 14px 0; padding: 14px 16px; background: #030503; border: 1px solid var(--hairline); border-radius: var(--r-2); overflow-x: auto; }
+.pb-rich pre code { background: none; border: 0; padding: 0; color: var(--fg); font-size: 13px; }
+.pb-rich img { max-width: 100%; height: auto; border-radius: var(--r-2); border: 1px solid var(--hairline); margin: 14px 0; }
+.pb-rich hr { border: 0; border-top: 1px solid var(--hairline-strong); margin: 20px 0; }
+.pb-rich table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+.pb-rich th, .pb-rich td { border: 1px solid var(--hairline-strong); padding: 7px 10px; text-align: left; }
+.pb-rich th { background: var(--surface-3); color: var(--fg-strong); font-weight: 600; }
+
+/* selected image in the editor */
+.rich-editor .ProseMirror img.ProseMirror-selectednode { outline: 2px solid var(--brand-500); }
