@@ -5,7 +5,8 @@ import type { Actor } from "@/lib/problems/authz";
 import { createProblem, getProblemByCode, updateProblem, publishProblem, setVisibility, listProblems, ServiceError } from "@/lib/problems/service";
 import { addTranslation, updateTranslation, setOriginalLanguage, removeTranslation } from "@/lib/problems/translations";
 import { setProblemTags, createTag } from "@/lib/problems/taxonomy";
-import { createTest, reorderTests, deleteTest } from "@/lib/problems/tests-service";
+import { createTest, reorderTests, deleteTest, importTestsFromZip } from "@/lib/problems/tests-service";
+import JSZip from "jszip";
 import { setScoring } from "@/lib/problems/scoring-service";
 import { setAttachment, addImage } from "@/lib/problems/attachments-service";
 import { upsertEditorialTranslation, addEditorialSolution, addEditorialVideo } from "@/lib/problems/editorials-service";
@@ -140,6 +141,42 @@ describe("tests + scoring", () => {
     await deleteTest("secv3", t1.id, helper);
     const p = await getProblemByCode("secv3");
     expect(p!.tests.map(t => t.name)).toEqual(["test-02", "test-03"]);
+  });
+});
+
+async function testsZip(pairs: [string, string, string][]): Promise<Buffer> {
+  const zip = new JSZip();
+  for (const [name, input, output] of pairs) { zip.file(`${name}.in`, input); zip.file(`${name}.ok`, output); }
+  return zip.generateAsync({ type: "nodebuffer" });
+}
+
+describe("test import (zip upload)", () => {
+  it("replaces the whole test set from a zip", async () => {
+    await createProblem(baseProblem(), helper);
+    await createTest("secv3", { name: "old", input: "1", output: "1" }, helper);
+    const res = await importTestsFromZip("secv3", await testsZip([["1", "5\n1 2 3 4 5", "15"], ["2", "3\n10 20 30", "60"]]), "replace", helper);
+    expect(res).toMatchObject({ imported: 2, total: 2, mode: "replace" });
+    const p = await getProblemByCode("secv3");
+    expect(p!.tests.map(t => t.name)).toEqual(["1", "2"]);
+  });
+
+  it("appends to existing tests and rejects name collisions", async () => {
+    await createProblem(baseProblem(), helper);
+    await importTestsFromZip("secv3", await testsZip([["1", "a", "A"]]), "replace", helper);
+    const res = await importTestsFromZip("secv3", await testsZip([["2", "b", "B"]]), "append", helper);
+    expect(res).toMatchObject({ imported: 1, total: 2 });
+    const p = await getProblemByCode("secv3");
+    expect(p!.tests.map(t => t.name)).toEqual(["1", "2"]);
+    await expect(importTestsFromZip("secv3", await testsZip([["2", "c", "C"]]), "append", helper)).rejects.toMatchObject({ status: 409 });
+  });
+
+  it("rejects a malformed package without touching existing tests", async () => {
+    await createProblem(baseProblem(), helper);
+    await importTestsFromZip("secv3", await testsZip([["1", "a", "A"]]), "replace", helper);
+    const bad = new JSZip(); bad.file("1.in", "x"); // missing 1.ok
+    await expect(importTestsFromZip("secv3", await bad.generateAsync({ type: "nodebuffer" }), "replace", helper)).rejects.toMatchObject({ status: 400 });
+    const p = await getProblemByCode("secv3");
+    expect(p!.tests.map(t => t.name)).toEqual(["1"]);
   });
 });
 

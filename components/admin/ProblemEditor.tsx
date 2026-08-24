@@ -244,8 +244,15 @@ function TagsSection({ initial, allTags, api, base }: { initial: FullProblem; al
 }
 
 function TestsSection({ initial, api, base }: { initial: FullProblem; api: Api; base: string }) {
+  const router = useRouter();
   const [n, setN] = useState({ name: "", input: "", output: "" });
+  const [showManual, setShowManual] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [mode, setMode] = useState<"replace" | "append">("replace");
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<{ ok?: string; err?: string }>({});
   const tests = initial.tests;
+
   const move = async (idx: number, dir: -1 | 1) => {
     const order = tests.map(t => t.id);
     const j = idx + dir;
@@ -253,6 +260,28 @@ function TestsSection({ initial, api, base }: { initial: FullProblem; api: Api; 
     [order[idx], order[j]] = [order[j], order[idx]];
     await api(base + "/tests/reorder", "POST", { testIds: order });
   };
+
+  const upload = async () => {
+    if (!file) { setNote({ err: "Choose a .zip file first." }); return; }
+    if (mode === "replace" && tests.length > 0 &&
+        !confirm(`Replace all ${tests.length} current test(s)? They will be removed and unlinked from any scoring subtasks.`)) return;
+    setBusy(true); setNote({});
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("mode", mode);
+      const res = await fetch(base + "/tests/import", { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) { setNote({ err: data.error || (data.errors?.zip) || "Upload failed." }); setBusy(false); return; }
+      setNote({ ok: `Imported ${data.imported} test${data.imported === 1 ? "" : "s"} — ${data.total} total.` });
+      setFile(null);
+      router.refresh();
+    } catch {
+      setNote({ err: "Upload failed." });
+    }
+    setBusy(false);
+  };
+
   return (
     <Section title={`Tests (${tests.length})`}>
       <div className="adm-list">
@@ -268,17 +297,42 @@ function TestsSection({ initial, api, base }: { initial: FullProblem; api: Api; 
             </span>
           </div>
         ))}
-        {tests.length === 0 && <p className="dim t-sm">No tests yet.</p>}
+        {tests.length === 0 && <p className="dim t-sm">No tests yet — upload a package below.</p>}
       </div>
+
+      {/* Primary path: upload a zip of all tests */}
       <div className="adm-subform stack-3">
-        <div className="strong t-sm">Add a test</div>
-        <div className="field"><label>Name</label><input className="input mono" value={n.name} onChange={e => setN({ ...n, name: e.target.value })} placeholder="test-01"/></div>
-        <div className="adm-grid">
-          <div className="field"><label>Input</label><textarea className="input mono" rows={3} value={n.input} onChange={e => setN({ ...n, input: e.target.value })}/></div>
-          <div className="field"><label>Expected output</label><textarea className="input mono" rows={3} value={n.output} onChange={e => setN({ ...n, output: e.target.value })}/></div>
+        <div className="strong t-sm">Upload a test package (.zip)</div>
+        <p className="t-xs dim" style={{ margin: 0 }}>
+          Each test is a pair of files that share a name — <code>NAME.in</code> (input) and <code>NAME.ok</code> (expected
+          output). Zip them together and upload. New to this? <a className="adm-link" href={base + "/tests/template"} download>Download the template</a> — it has a README and worked examples.
+        </p>
+        <div className="row gap-2" style={{ flexWrap: "wrap", alignItems: "center" }}>
+          <input type="file" accept=".zip,application/zip" className="input" onChange={e => { setFile(e.target.files?.[0] ?? null); setNote({}); }} />
+          <select className="input adm-inline" value={mode} onChange={e => setMode(e.target.value as "replace" | "append")}>
+            <option value="replace">Replace all tests</option>
+            <option value="append">Add to existing</option>
+          </select>
+          <button className="btn btn-primary btn-sm" onClick={upload} disabled={busy || !file}>{busy ? "Uploading…" : "Upload package"}</button>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={async () => { const r = await api(base + "/tests", "POST", n); if (r) setN({ name: "", input: "", output: "" }); }}>Add test</button>
+        {note.ok && <div className="st-ok"><Icon name="check" size={13} /> {note.ok}</div>}
+        {note.err && <div className="auth-error">{note.err}</div>}
       </div>
+
+      {/* Secondary: add a single test by hand */}
+      <button className="adm-link t-xs" onClick={() => setShowManual(s => !s)} style={{ marginTop: 8 }}>
+        {showManual ? "− Hide manual entry" : "+ Add a single test manually"}
+      </button>
+      {showManual && (
+        <div className="adm-subform stack-3">
+          <div className="field"><label>Name</label><input className="input mono" value={n.name} onChange={e => setN({ ...n, name: e.target.value })} placeholder="test-01"/></div>
+          <div className="adm-grid">
+            <div className="field"><label>Input</label><textarea className="input mono" rows={3} value={n.input} onChange={e => setN({ ...n, input: e.target.value })}/></div>
+            <div className="field"><label>Expected output</label><textarea className="input mono" rows={3} value={n.output} onChange={e => setN({ ...n, output: e.target.value })}/></div>
+          </div>
+          <button className="btn btn-secondary btn-sm" onClick={async () => { const r = await api(base + "/tests", "POST", n); if (r) setN({ name: "", input: "", output: "" }); }}>Add test</button>
+        </div>
+      )}
     </Section>
   );
 }
