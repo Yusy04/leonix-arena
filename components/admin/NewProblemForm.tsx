@@ -3,11 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
-import { RichEditor } from "@/components/admin/RichEditor";
 
 export function NewProblemForm() {
   const router = useRouter();
-  const [f, setF] = useState({ code: "", title: "", originalLanguage: "ro", statement: "" });
+  const [f, setF] = useState({ code: "", title: "", originalLanguage: "ro" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
 
@@ -19,7 +18,6 @@ export function NewProblemForm() {
         method: "POST", headers: { "content-type": "application/json" },
         body: JSON.stringify({
           code: f.code, title: f.title, originalLanguage: f.originalLanguage,
-          statement: { language: f.originalLanguage, title: f.title, statement: f.statement },
         }),
       });
       const body = await res.json().catch(() => ({}));
@@ -33,14 +31,13 @@ export function NewProblemForm() {
       <div className="page-header">
         <span className="eyebrow">// new problem</span>
         <h1>Create a problem</h1>
-        <p className="subtitle">Start with the basics — you can fill in tests, scoring, translations and more after.</p>
+        <p className="subtitle">Start with the basics — you&apos;ll write the statement and add images, tests, scoring and translations in the editor next.</p>
       </div>
       <form className="adm-card stack-4" onSubmit={submit}>
         {errors.form && <div className="auth-error">{errors.form}</div>}
         <div className="field"><label>Code / slug</label><input className="input mono" value={f.code} onChange={e => setF({ ...f, code: e.target.value })} placeholder="secv3"/>{errors.code && <span className="field-error">{errors.code}</span>}</div>
         <div className="field"><label>Title</label><input className="input" value={f.title} onChange={e => setF({ ...f, title: e.target.value })} placeholder="Secvență 3"/>{errors.title && <span className="field-error">{errors.title}</span>}</div>
-        <div className="field"><label>Original statement language</label><input className="input mono" value={f.originalLanguage} onChange={e => setF({ ...f, originalLanguage: e.target.value })} placeholder="ro"/>{errors.originalLanguage && <span className="field-error">{errors.originalLanguage}</span>}</div>
-        <div className="field"><label>Statement</label><RichEditor value={f.statement} onChange={html => setF({ ...f, statement: html })}/>{errors.statement && <span className="field-error">{errors.statement}</span>}<span className="t-xs dim" style={{ marginTop: 6, display: "block" }}>You can add images and more formatting after creating the problem.</span></div>
+        <div className="field"><label>Original statement language</label><input className="input mono" value={f.originalLanguage} onChange={e => setF({ ...f, originalLanguage: e.target.value })} placeholder="ro"/>{errors.originalLanguage && <span className="field-error">{errors.originalLanguage}</span>}<span className="t-xs dim" style={{ marginTop: 6, display: "block" }}>Creates an empty statement in this language. You&apos;ll write it — with formatting and inline images — in the next step.</span></div>
         <div className="row gap-2">
           <button type="button" className="btn btn-secondary" onClick={() => router.push("/admin/problems")}>Cancel</button>
           <button className="btn btn-primary" disabled={busy}>{busy ? "Creating…" : <>Create <Icon name="arrow-r" size={12}/></>}</button>

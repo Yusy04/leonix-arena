@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth/password";
 import type { Actor } from "@/lib/problems/authz";
 import { createProblem, getProblemByCode, updateProblem, publishProblem, setVisibility, listProblems, ServiceError } from "@/lib/problems/service";
-import { addTranslation, setOriginalLanguage, removeTranslation } from "@/lib/problems/translations";
+import { addTranslation, updateTranslation, setOriginalLanguage, removeTranslation } from "@/lib/problems/translations";
 import { setProblemTags, createTag } from "@/lib/problems/taxonomy";
 import { createTest, reorderTests, deleteTest } from "@/lib/problems/tests-service";
 import { setScoring } from "@/lib/problems/scoring-service";
@@ -47,6 +47,12 @@ describe("problem creation", () => {
   });
   it("rejects an invalid code", async () => {
     await expect(createProblem({ ...baseProblem("Bad Code") }, helper)).rejects.toMatchObject({ status: 400 });
+  });
+  it("creates an empty original-language statement shell when none is provided", async () => {
+    const p = await createProblem({ code: "secv3", title: "Secvență 3", originalLanguage: "ro" }, helper);
+    expect(p.translations).toHaveLength(1);
+    expect(p.translations[0].language).toBe("ro");
+    expect(p.translations[0].statement).toBe("");
   });
 });
 
@@ -221,5 +227,12 @@ describe("lifecycle", () => {
     expect(vis.visibility).toBe("PUBLIC");
     const listed = await listProblems({ status: "PUBLISHED" });
     expect(listed.items.map(p => p.code)).toContain("secv3");
+  });
+  it("blocks publishing until the statement is written", async () => {
+    await createProblem({ code: "secv3", title: "Secvență 3", originalLanguage: "ro" }, helper);
+    await expect(publishProblem("secv3", helper)).rejects.toMatchObject({ status: 400 });
+    await updateTranslation("secv3", "ro", { statement: "Enunț..." }, helper);
+    const pub = await publishProblem("secv3", helper);
+    expect(pub.status).toBe("PUBLISHED");
   });
 });

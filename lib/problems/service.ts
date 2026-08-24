@@ -95,10 +95,15 @@ export interface CreateProblemInput {
   memoryLimitMb?: number;
   difficulty?: number;
   originalLanguage: string;
-  statement: {
-    language: string;
-    title: string;
-    statement: string;
+  /**
+   * Optional seed for the original-language translation. Authors write the
+   * actual statement in the full editor after creation, so at create time we
+   * only need a language + title to spin up the translation shell.
+   */
+  statement?: {
+    language?: string;
+    title?: string;
+    statement?: string;
     inputSpec?: string;
     outputSpec?: string;
     constraints?: string;
@@ -108,6 +113,9 @@ export interface CreateProblemInput {
 
 export async function createProblem(input: CreateProblemInput, actor: Actor) {
   if (!canCreateProblem(actor.role)) throw new ServiceError(403, "You do not have permission to create problems.");
+
+  const stmtLanguage = input.statement?.language ?? input.originalLanguage;
+  const stmtTitle = input.statement?.title ?? input.title;
 
   const errors = validateProblem({
     code: input.code,
@@ -119,11 +127,8 @@ export async function createProblem(input: CreateProblemInput, actor: Actor) {
     timeLimitMs: input.timeLimitMs,
     memoryLimitMb: input.memoryLimitMb,
     originalLanguage: input.originalLanguage,
-    statementLanguages: input.statement?.language ? [input.statement.language] : [],
+    statementLanguages: [stmtLanguage],
   });
-  if (!input.statement?.language || !input.statement?.statement) {
-    errors.statement = "An initial statement (with its language) is required.";
-  }
   if (Object.keys(errors).length) throw new ServiceError(400, "Invalid problem.", errors);
 
   if (await prisma.problem.findUnique({ where: { code: input.code } })) {
@@ -146,13 +151,13 @@ export async function createProblem(input: CreateProblemInput, actor: Actor) {
       originalLanguage: input.originalLanguage,
       translations: {
         create: [{
-          language: input.statement.language,
-          title: input.statement.title,
-          statement: sanitizeStatement(input.statement.statement),
-          inputSpec: input.statement.inputSpec ? sanitizeStatement(input.statement.inputSpec) : null,
-          outputSpec: input.statement.outputSpec ? sanitizeStatement(input.statement.outputSpec) : null,
-          constraints: input.statement.constraints ? sanitizeStatement(input.statement.constraints) : null,
-          notes: input.statement.notes ? sanitizeStatement(input.statement.notes) : null,
+          language: stmtLanguage,
+          title: stmtTitle,
+          statement: sanitizeStatement(input.statement?.statement ?? ""),
+          inputSpec: input.statement?.inputSpec ? sanitizeStatement(input.statement.inputSpec) : null,
+          outputSpec: input.statement?.outputSpec ? sanitizeStatement(input.statement.outputSpec) : null,
+          constraints: input.statement?.constraints ? sanitizeStatement(input.statement.constraints) : null,
+          notes: input.statement?.notes ? sanitizeStatement(input.statement.notes) : null,
           published: true,
         }],
       },
@@ -216,6 +221,9 @@ export async function publishProblem(code: string, actor: Actor) {
     where: { problemId_language: { problemId: problem.id, language: problem.originalLanguage } },
   });
   if (!orig) throw new ServiceError(400, "Cannot publish: the original-language statement is missing.");
+  if (!orig.statement || !orig.statement.trim()) {
+    throw new ServiceError(400, "Cannot publish: write the statement before publishing.");
+  }
   return prisma.problem.update({
     where: { id: problem.id },
     data: { status: "PUBLISHED", updatedById: actor.id },
