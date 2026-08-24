@@ -184,13 +184,36 @@ function PbEditor({ languages }: { languages: { code: string; name: string }[] }
   );
 }
 
+/* ---------- pre-publish preview / editor bar ---------- */
+function PbAdminBar({ code, canEdit, preview }: { code: string; canEdit?: boolean; preview?: { status: string; visibility: string } | null }) {
+  const router = useRouter();
+  if (!canEdit && !preview) return null;
+  return (
+    <div className={"pb-adminbar" + (preview ? " is-preview" : "")}>
+      {preview ? (
+        <span className="pb-preview-tag">
+          <Icon name="lock" size={14}/> Preview — this problem is <strong>{preview.status.toLowerCase()}</strong> and isn&apos;t visible to the public yet. Only you and its editors can see this.
+        </span>
+      ) : (
+        <span className="pb-preview-tag dim"><Icon name="check" size={14}/> You have edit access to this problem.</span>
+      )}
+      {canEdit && (
+        <button className="btn btn-secondary btn-sm" onClick={() => router.push("/admin/problems/" + code)}>
+          <Icon name="edit" size={13}/> Edit problem
+        </button>
+      )}
+    </div>
+  );
+}
+
 /* ---------- page shell ---------- */
-export default function Problem({ view, submissions }: { view: ProblemView; submissions: SubRow[] }) {
+export default function Problem({ view, submissions, canEdit, preview }: { view: ProblemView; submissions: SubRow[]; canEdit?: boolean; preview?: { status: string; visibility: string } | null }) {
   const [tab, setTab] = useState("statement");
   const [srcSub, setSrcSub] = useState<SubRow | null>(null);
   const tabs = [["statement", "Statement"], ["editorial", "Editorial"], ["submissions", "Submissions"]];
   return (
     <div className="pb container-wide">
+      <PbAdminBar code={view.code} canEdit={canEdit} preview={preview}/>
       <div className="pb-split">
         <div className="pb-left hud">
           <span className="hud-corners"></span>

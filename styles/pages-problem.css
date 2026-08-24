@@ -2,6 +2,18 @@
    PROBLEM PAGE — Statement / Editorial / Submissions + editor
    ========================================================= */
 .pb { padding: 24px; }
+
+/* ---------- pre-publish preview / editor bar ---------- */
+.pb-adminbar {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin-bottom: 16px; padding: 10px 16px;
+  border: 1px solid var(--hairline-strong); border-radius: var(--r-3);
+  background: var(--surface-2);
+}
+.pb-adminbar.is-preview { border-color: var(--border-brand); background: var(--brand-glow-soft); }
+.pb-preview-tag { display: inline-flex; align-items: center; gap: 8px; flex: 1; min-width: 220px; font-size: 13px; color: var(--fg-muted); }
+.pb-preview-tag strong { color: var(--brand-200); text-transform: uppercase; letter-spacing: 0.04em; }
+
 .pb-split { display: grid; grid-template-columns: 1.05fr 1fr; gap: 20px; align-items: start; }
 @media (max-width: 1100px) { .pb-split { grid-template-columns: 1fr; } }
 

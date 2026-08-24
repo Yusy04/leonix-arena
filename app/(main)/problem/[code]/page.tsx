@@ -1,15 +1,13 @@
 import { notFound } from "next/navigation";
-import { getPublicProblem, resolvedLanguageLimits, pickTranslation } from "@/lib/problems/public";
+import { getPublicProblem, getDraftProblem, resolvedLanguageLimits, pickTranslation, type PublicProblem } from "@/lib/problems/public";
+import { getCurrentUser } from "@/lib/auth/session";
+import { canManageProblem } from "@/lib/problems/authz";
 import { problemSubmissions } from "@/lib/submissions/queries";
 import Problem, { type ProblemView } from "@/components/pages/Problem";
 
-export default async function Page({ params }: { params: Promise<{ code: string }> }) {
-  const { code } = await params;
-  const problem = await getPublicProblem(code);
-  if (!problem) notFound();
+function toView(problem: PublicProblem): ProblemView {
   const statement = pickTranslation(problem);
-
-  const view: ProblemView = {
+  return {
     code: problem.code,
     title: statement?.title ?? problem.title,
     authorName: problem.authorName,
@@ -37,7 +35,31 @@ export default async function Page({ params }: { params: Promise<{ code: string 
         }
       : null,
   };
+}
 
+export default async function Page({ params }: { params: Promise<{ code: string }> }) {
+  const { code } = await params;
+  const user = await getCurrentUser();
+  const canManage = (problem: PublicProblem) =>
+    !!user && canManageProblem({ id: user.id, role: user.role }, { createdById: problem.createdById, collaboratorIds: problem.collaborators.map(c => c.userId) });
+
+  // Published problems render normally; a manager additionally gets an Edit button.
+  const published = await getPublicProblem(code);
+  if (published) {
+    const subs = await problemSubmissions(code, {});
+    return <Problem view={toView(published)} submissions={subs?.rows ?? []} canEdit={canManage(published)} />;
+  }
+
+  // Not published — only someone who can manage it may preview the draft.
+  const draft = await getDraftProblem(code);
+  if (!draft || !canManage(draft)) notFound();
   const subs = await problemSubmissions(code, {});
-  return <Problem view={view} submissions={subs?.rows ?? []} />;
+  return (
+    <Problem
+      view={toView(draft)}
+      submissions={subs?.rows ?? []}
+      canEdit
+      preview={{ status: draft.status, visibility: draft.visibility }}
+    />
+  );
 }

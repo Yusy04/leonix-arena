@@ -47,6 +47,9 @@ export function ProblemEditor({ initial, allTags, languages }: { initial: FullPr
           </div>
         </div>
         <div className="row gap-2" style={{ flexWrap: "wrap" }}>
+          <a className="btn btn-secondary btn-sm" href={"/problem/" + initial.code} target="_blank" rel="noopener noreferrer">
+            <Icon name="search" size={13}/> Preview
+          </a>
           <select className="input adm-inline" defaultValue={initial.visibility} onChange={e => api(base + "/visibility", "POST", { visibility: e.target.value })}>
             <option value="PUBLIC">Public</option><option value="PRIVATE">Private</option><option value="CONTEST_ONLY">Contest only</option>
           </select>

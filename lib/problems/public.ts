@@ -47,24 +47,47 @@ export async function listArchive(userId?: string): Promise<ArchiveRow[]> {
 }
 
 /** A published problem with everything the public problem page renders. */
-export function getPublicProblem(code: string) {
-  return prisma.problem.findFirst({
-    where: { code, status: "PUBLISHED" },
-    include: {
-      translations: { where: { published: true } },
-      tags: { include: { tag: true } },
-      sources: { include: { source: true } },
-      samples: { orderBy: { index: "asc" } },
-      languageSettings: { include: { language: true }, orderBy: { language: { ordering: "asc" } } },
-      editorial: {
-        include: {
-          translations: {
-            where: { published: true },
-            include: { solutions: { include: { language: true } }, videos: { orderBy: { ordering: "asc" } } },
-          },
+/**
+ * Relations the problem page renders. `onlyPublished` filters translations and
+ * the editorial to published rows (the public view); a preview passes `false`
+ * so an author sees exactly what they've written, published or not.
+ */
+function problemPageInclude(onlyPublished: boolean) {
+  const translationFilter = onlyPublished ? { where: { published: true } } : {};
+  return {
+    translations: translationFilter,
+    tags: { include: { tag: true } },
+    sources: { include: { source: true } },
+    samples: { orderBy: { index: "asc" as const } },
+    languageSettings: { include: { language: true }, orderBy: { language: { ordering: "asc" as const } } },
+    collaborators: { select: { userId: true } },
+    editorial: {
+      include: {
+        translations: {
+          ...translationFilter,
+          include: { solutions: { include: { language: true } }, videos: { orderBy: { ordering: "asc" as const } } },
         },
       },
     },
+  };
+}
+
+export function getPublicProblem(code: string) {
+  return prisma.problem.findFirst({
+    where: { code, status: "PUBLISHED" },
+    include: problemPageInclude(true),
+  });
+}
+
+/**
+ * Same shape as {@link getPublicProblem} but for ANY status and including
+ * unpublished translations/editorial — used to preview a draft before it is
+ * published. The caller must check the viewer may manage the problem.
+ */
+export function getDraftProblem(code: string) {
+  return prisma.problem.findFirst({
+    where: { code },
+    include: problemPageInclude(false),
   });
 }
 

@@ -37,6 +37,7 @@ export function Icon({ name, size = 16, stroke = 1.6, className }: { name: strin
     case 'fire':     return <svg {...props}><path d="M12 3s4 4 4 8a4 4 0 0 1-8 0c0-2 1-3 1-3s-2 2-2 5a6 6 0 0 0 12 0c0-7-7-10-7-10z"/></svg>;
     case 'trophy':   return <svg {...props}><path d="M8 4h8v6a4 4 0 0 1-8 0V4z"/><path d="M8 6H5v2a3 3 0 0 0 3 3M16 6h3v2a3 3 0 0 1-3 3"/><path d="M10 16h4M9 20h6"/></svg>;
     case 'code':     return <svg {...props}><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>;
+    case 'edit':     return <svg {...props}><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>;
     case 'sigma':    return <svg {...props}><path d="M18 5H6l6 7-6 7h12"/></svg>;
     case 'lang':     return <svg {...props}><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>;
     case 'web':      return <svg {...props}><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>;

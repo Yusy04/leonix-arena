@@ -6,6 +6,7 @@ import { createProblem, getProblemByCode, updateProblem, publishProblem, setVisi
 import { addTranslation, updateTranslation, setOriginalLanguage, removeTranslation } from "@/lib/problems/translations";
 import { setProblemTags, createTag } from "@/lib/problems/taxonomy";
 import { createTest, reorderTests, deleteTest, importTestsFromZip } from "@/lib/problems/tests-service";
+import { getPublicProblem, getDraftProblem } from "@/lib/problems/public";
 import JSZip from "jszip";
 import { setScoring } from "@/lib/problems/scoring-service";
 import { setAttachment, addImage } from "@/lib/problems/attachments-service";
@@ -177,6 +178,28 @@ describe("test import (zip upload)", () => {
     await expect(importTestsFromZip("secv3", await bad.generateAsync({ type: "nodebuffer" }), "replace", helper)).rejects.toMatchObject({ status: 400 });
     const p = await getProblemByCode("secv3");
     expect(p!.tests.map(t => t.name)).toEqual(["1"]);
+  });
+});
+
+describe("preview queries (pre-publish viewer)", () => {
+  it("hides a draft from the public query but exposes it for preview", async () => {
+    await createProblem(baseProblem(), helper);
+    expect(await getPublicProblem("secv3")).toBeNull();
+    const draft = await getDraftProblem("secv3");
+    expect(draft).not.toBeNull();
+    expect(draft!.status).toBe("DRAFT");
+    expect(draft!.collaborators).toBeDefined(); // needed for the canManage check
+    expect(draft!.translations.length).toBeGreaterThan(0);
+  });
+
+  it("preview shows unpublished translations that the public view hides", async () => {
+    await createProblem(baseProblem(), helper);
+    await addTranslation("secv3", { language: "en", title: "Sequence 3", statement: "Draft EN", published: false }, helper);
+    await publishProblem("secv3", helper);
+    const pub = await getPublicProblem("secv3");
+    const draft = await getDraftProblem("secv3");
+    expect(pub!.translations.map(t => t.language).sort()).toEqual(["ro"]);
+    expect(draft!.translations.map(t => t.language).sort()).toEqual(["en", "ro"]);
   });
 });
 
