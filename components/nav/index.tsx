@@ -99,9 +99,6 @@ export function TopNav() {
                     </div>
                   )}
                 </div>
-                <button className="btn btn-ghost btn-icon" onClick={() => router.push('/qr')} title="My QR">
-                  <Icon name="qr" size={16}/>
-                </button>
                 <div className="profile-pop">
                   <button className="profile-trig" onClick={() => setOpenProfile(o => !o)}>
                     <Avatar initial={user.initial} hue={user.hue} size="sm" />
@@ -124,7 +121,6 @@ export function TopNav() {
                         <a onClick={() => { router.push('/dashboard'); setOpenProfile(false); }}><Icon name="home" size={14}/> Dashboard</a>
                         <a onClick={() => { router.push('/leaderboard'); setOpenProfile(false); }}><Icon name="trophy" size={14}/> Leaderboard</a>
                         {(role === 'ADMIN' || role === 'HELPER') && <a onClick={() => { router.push('/admin/problems'); setOpenProfile(false); }}><Icon name="briefcase" size={14}/> Manage problems</a>}
-                        <a onClick={() => { router.push('/qr'); setOpenProfile(false); }}><Icon name="qr" size={14}/> My QR code</a>
                         <a onClick={() => { router.push('/settings'); setOpenProfile(false); }}><Icon name="settings" size={14}/> Account</a>
                         <div className="divider" style={{margin:'6px 0'}}/>
                         <a onClick={() => { setOpenProfile(false); logout(); }}><Icon name="logout" size={14}/> Sign out</a>
@@ -162,7 +158,6 @@ export function TopNav() {
               ))}
               <div className="divider"/>
               <a onClick={() => { router.push('/dashboard'); setOpenMobile(false); }}>Dashboard</a>
-              <a onClick={() => { router.push('/qr'); setOpenMobile(false); }}>QR Code</a>
               <a onClick={() => { router.push('/profile'); setOpenMobile(false); }}>Account</a>
             </nav>
           </div>
@@ -187,7 +182,6 @@ export function CommandPalette({ onClose }: { onClose: () => void }) {
     { label: 'AI Study Buddy',         icon: 'sparkle', action: () => router.push('/buddy') },
     { label: 'Notifications',          icon: 'bell',    action: () => router.push('/notifications') },
     { label: 'Settings',               icon: 'settings',action: () => router.push('/settings') },
-    { label: 'My QR code',             icon: 'qr',      action: () => router.push('/qr') },
   ];
   const res = searchAll(q);
   const filteredPages = q ? pages.filter(p => p.label.toLowerCase().includes(q.toLowerCase())) : pages.slice(0, 6);
@@ -290,7 +284,6 @@ export function Footer() {
             <a onClick={() => router.push('/profile')} className="t-sm">My profile</a>
             <a onClick={() => router.push('/notifications')} className="t-sm">Notifications</a>
             <a onClick={() => router.push('/settings')} className="t-sm">Settings</a>
-            <a onClick={() => router.push('/qr')} className="t-sm">My QR code</a>
             <a onClick={() => router.push('/login')} className="t-sm">Sign in</a>
           </div>
         </div>

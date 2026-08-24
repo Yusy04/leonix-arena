@@ -225,7 +225,7 @@ export const NOTIFICATIONS: Notification[] = [
   { id: "n3", type: "rank",      text: "Maria S. passed you — you're now #7 on the weekly board", href: "/leaderboard",      at: isoAt(0, 8, 0, 0),    read: false },
   { id: "n4", type: "editorial", text: "New editorial published for Shortest Path Grid",          href: "/problem",          at: isoAt(1, 18, 30, 0),  read: true },
   { id: "n5", type: "streak",    text: "Keep your 12-day streak alive — solve one today",         href: "/archive",          at: isoAt(1, 9, 0, 0),    read: true },
-  { id: "n6", type: "contest",   text: "On-site contest check-in opens tomorrow at 09:00",        href: "/qr",               at: isoAt(2, 12, 0, 0),   read: true },
+  { id: "n6", type: "contest",   text: "Weekend Contest #12 starts tomorrow at 09:00",             href: "/archive",          at: isoAt(2, 12, 0, 0),   read: true },
   { id: "n7", type: "badge",     text: "Badge earned: 30-day streak 🔥",                          href: "/u/alexp",          at: isoAt(3, 20, 0, 0),   read: true },
 ];
 

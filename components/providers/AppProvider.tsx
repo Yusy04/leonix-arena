@@ -8,7 +8,7 @@ import { NOTIFICATIONS, CURRENT_HANDLE } from "@/lib/mock";
 // Gamification stats aren't real yet (no problems backend), so they stay as
 // placeholders. Identity + profile details (name/email/city/avatar) come from
 // the signed-in account.
-const PLACEHOLDER_STATS = { qrCode: "LNX-Y3K9-77AX", level: 7, xp: 6420, xpNext: 8000, streak: 12 };
+const PLACEHOLDER_STATS = { level: 7, xp: 6420, xpNext: 8000, streak: 12 };
 
 function toMockUser(authUser: AuthUser | null): User {
   if (!authUser) {

@@ -5,7 +5,6 @@ export interface User {
   email: string;
   hue: number;
   city: string;
-  qrCode: string;
   level: number;
   xp: number;
   xpNext: number;

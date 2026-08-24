@@ -14,7 +14,6 @@ export function Icon({ name, size = 16, stroke = 1.6, className }: { name: strin
     case 'shop':     return <svg {...props}><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M3 10h18M9 6V4a3 3 0 0 1 6 0v2"/></svg>;
     case 'calendar': return <svg {...props}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>;
     case 'book':     return <svg {...props}><path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H20v18H5.5A1.5 1.5 0 0 1 4 19.5V4.5z"/><path d="M4 17h16"/></svg>;
-    case 'qr':       return <svg {...props}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v3M14 21h7M17 17v4"/></svg>;
     case 'user':     return <svg {...props}><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>;
     case 'search':   return <svg {...props}><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>;
     case 'bell':     return <svg {...props}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>;
