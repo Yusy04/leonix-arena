@@ -7,6 +7,7 @@ import { addTranslation, updateTranslation, setOriginalLanguage, removeTranslati
 import { setProblemTags, createTag } from "@/lib/problems/taxonomy";
 import { createTest, reorderTests, deleteTest, importTestsFromZip } from "@/lib/problems/tests-service";
 import { getPublicProblem, getDraftProblem } from "@/lib/problems/public";
+import { createSample, updateSample, deleteSample, reorderSamples } from "@/lib/problems/samples-service";
 import JSZip from "jszip";
 import { setScoring } from "@/lib/problems/scoring-service";
 import { setAttachment, addImage } from "@/lib/problems/attachments-service";
@@ -178,6 +179,34 @@ describe("test import (zip upload)", () => {
     await expect(importTestsFromZip("secv3", await bad.generateAsync({ type: "nodebuffer" }), "replace", helper)).rejects.toMatchObject({ status: 400 });
     const p = await getProblemByCode("secv3");
     expect(p!.tests.map(t => t.name)).toEqual(["1"]);
+  });
+});
+
+describe("samples (worked examples)", () => {
+  it("creates, orders, edits and deletes multiple examples", async () => {
+    await createProblem(baseProblem(), helper);
+    const s1 = await createSample("secv3", { input: "5\n1 2 3 4 5", output: "15", explanation: "1+2+3+4+5" }, helper);
+    const s2 = await createSample("secv3", { input: "3\n10 20 30", output: "60" }, helper);
+    expect([s1.index, s2.index]).toEqual([1, 2]);
+    expect(s1.explanation).toBe("1+2+3+4+5");
+    expect(s2.explanation).toBeNull();
+
+    const reordered = await reorderSamples("secv3", [s2.id, s1.id], helper);
+    expect(reordered.map(s => s.id)).toEqual([s2.id, s1.id]);
+    expect(reordered.map(s => s.index)).toEqual([1, 2]);
+
+    const upd = await updateSample("secv3", s1.id, { explanation: "   " }, helper); // whitespace clears it
+    expect(upd.explanation).toBeNull();
+
+    await deleteSample("secv3", s2.id, helper);
+    const p = await getProblemByCode("secv3");
+    expect(p!.samples.map(s => s.id)).toEqual([s1.id]);
+  });
+
+  it("requires the expected output and blocks non-managers", async () => {
+    await createProblem(baseProblem(), helper);
+    await expect(createSample("secv3", { input: "x", output: "  " }, helper)).rejects.toMatchObject({ status: 400 });
+    await expect(createSample("secv3", { input: "x", output: "y" }, otherHelper)).rejects.toMatchObject({ status: 403 });
   });
 });
 

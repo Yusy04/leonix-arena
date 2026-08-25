@@ -63,18 +63,31 @@ function PbStatement({ view }: { view: ProblemView }) {
         </>
       ) : <p className="pb-p dim">No published statement for this problem yet.</p>}
 
-      {view.samples.length > 0 && view.samples.map(sample => (
-        <div key={sample.index} className="pb-io-grid">
-          <div className="pb-iobox">
-            <div className="pb-iobox-h"><Icon name="arrow-r" size={13}/> INPUT {sample.index}</div>
-            <pre className="pb-iobox-b">{sample.input}</pre>
-          </div>
-          <div className="pb-iobox">
-            <div className="pb-iobox-h"><Icon name="doc" size={13}/> OUTPUT {sample.index}</div>
-            <pre className="pb-iobox-b">{sample.output}</pre>
-          </div>
-        </div>
-      ))}
+      {view.samples.length > 0 && (
+        <>
+          <div className="pb-sec"><span className="pb-dot"></span>{view.samples.length > 1 ? "EXAMPLES" : "EXAMPLE"}</div>
+          {view.samples.map(sample => (
+            <div key={sample.index} className="pb-sample">
+              <div className="pb-io-grid">
+                <div className="pb-iobox">
+                  <div className="pb-iobox-h"><Icon name="arrow-r" size={13}/> INPUT {view.samples.length > 1 ? sample.index : ""}</div>
+                  <pre className="pb-iobox-b">{sample.input}</pre>
+                </div>
+                <div className="pb-iobox">
+                  <div className="pb-iobox-h"><Icon name="doc" size={13}/> OUTPUT {view.samples.length > 1 ? sample.index : ""}</div>
+                  <pre className="pb-iobox-b">{sample.output}</pre>
+                </div>
+              </div>
+              {sample.explanation && (
+                <div className="pb-explain">
+                  <span className="pb-explain-label"><Icon name="message" size={13}/> Explanation{view.samples.length > 1 ? ` ${sample.index}` : ""}</span>
+                  <p className="pb-explain-body">{sample.explanation}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </>
+      )}
       {view.tags.length > 0 && (
         <div className="pb-tags" style={{ marginTop: 18 }}>
           {!showTags ? (

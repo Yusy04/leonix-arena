@@ -63,6 +63,7 @@ export function ProblemEditor({ initial, allTags, languages }: { initial: FullPr
 
       <BasicSection initial={initial} api={api} base={base}/>
       <StatementsSection initial={initial} api={api} base={base}/>
+      <SamplesSection initial={initial} api={api} base={base}/>
       <TagsSection initial={initial} allTags={allTags} api={api} base={base}/>
       <TestsSection initial={initial} api={api} base={base}/>
       <ScoringSection initial={initial} api={api} base={base}/>
@@ -242,6 +243,74 @@ function TagsSection({ initial, allTags, api, base }: { initial: FullProblem; al
         </div>
       )}
       <div className="st-actions"><button className="btn btn-primary btn-sm" onClick={() => api(base + "/tags", "PUT", { tags: [...sel] })}>Save tags</button></div>
+    </Section>
+  );
+}
+
+function SampleForm({ base, api, initial, isNew, onDone }: {
+  base: string; api: Api; initial?: FullProblem["samples"][number]; isNew?: boolean; onDone: () => void;
+}) {
+  const [input, setInput] = useState(initial?.input ?? "");
+  const [output, setOutput] = useState(initial?.output ?? "");
+  const [explanation, setExplanation] = useState(initial?.explanation ?? "");
+  const save = async () => {
+    const payload = { input, output, explanation };
+    const r = isNew ? await api(base + "/samples", "POST", payload) : await api(base + "/samples/" + initial!.id, "PATCH", payload);
+    if (r) onDone();
+  };
+  return (
+    <div className="adm-subform stack-3">
+      <div className="strong t-sm">{isNew ? "New example" : "Edit example"}</div>
+      <div className="adm-grid">
+        <div className="field"><label>Input</label><textarea className="input mono" rows={4} value={input} onChange={e => setInput(e.target.value)} placeholder={"5\n1 2 3 4 5"}/></div>
+        <div className="field"><label>Expected output</label><textarea className="input mono" rows={4} value={output} onChange={e => setOutput(e.target.value)} placeholder="15"/></div>
+      </div>
+      <div className="field"><label>Explanation (optional)</label><textarea className="input" rows={2} value={explanation} onChange={e => setExplanation(e.target.value)} placeholder="Why this output is correct — shown under the example."/></div>
+      <div className="row gap-2">
+        <button className="btn btn-primary btn-sm" onClick={save}>{isNew ? "Add example" : "Save"}</button>
+        <button className="btn btn-ghost btn-sm" onClick={onDone}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
+function SamplesSection({ initial, api, base }: { initial: FullProblem; api: Api; base: string }) {
+  const samples = initial.samples;
+  const [editing, setEditing] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const move = async (idx: number, dir: -1 | 1) => {
+    const order = samples.map(s => s.id);
+    const j = idx + dir;
+    if (j < 0 || j >= order.length) return;
+    [order[idx], order[j]] = [order[j], order[idx]];
+    await api(base + "/samples/reorder", "POST", { sampleIds: order });
+  };
+  const preview = (v: string) => (v ? v.replace(/\s+/g, " ").slice(0, 28) : "∅");
+  return (
+    <Section title={`Examples (${samples.length})`}>
+      <p className="t-xs dim" style={{ marginTop: 0 }}>Worked input/output examples shown in the statement. Add as many as you need; the explanation is optional.</p>
+      <div className="adm-list">
+        {samples.map((s, i) => (
+          <div key={s.id}>
+            <div className="adm-item">
+              <span className="mono dim">#{s.index}</span>
+              <span className="adm-item-title mono t-xs" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{preview(s.input)} → {preview(s.output)}</span>
+              {s.explanation && <span className="adm-badge dim">note</span>}
+              <span className="row gap-2">
+                <button className="adm-link" onClick={() => move(i, -1)} disabled={i === 0}>↑</button>
+                <button className="adm-link" onClick={() => move(i, 1)} disabled={i === samples.length - 1}>↓</button>
+                <button className="adm-link" onClick={() => { setEditing(editing === s.id ? null : s.id); setAdding(false); }}>{editing === s.id ? "Close" : "Edit"}</button>
+                <button className="adm-link adm-danger" onClick={() => api(base + "/samples/" + s.id, "DELETE")}>Delete</button>
+              </span>
+            </div>
+            {editing === s.id && <SampleForm base={base} api={api} initial={s} onDone={() => setEditing(null)}/>}
+          </div>
+        ))}
+        {samples.length === 0 && <p className="dim t-sm">No examples yet.</p>}
+      </div>
+      {adding
+        ? <SampleForm base={base} api={api} isNew onDone={() => setAdding(false)}/>
+        : <button className="btn btn-secondary btn-sm" onClick={() => { setAdding(true); setEditing(null); }}><Icon name="plus" size={13}/> Add an example</button>}
     </Section>
   );
 }
