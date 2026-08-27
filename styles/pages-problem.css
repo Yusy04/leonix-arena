@@ -199,6 +199,36 @@
 .pe-submit { background: linear-gradient(180deg, #55c41a, #3a9e10); color: #06210a; border-color: #3a9e10; font-weight: 700; box-shadow: 0 0 16px -4px var(--brand-glow); }
 .pe-submit > svg { color: #06210a; }
 .pe-submit:hover { color: #06210a; box-shadow: 0 0 22px -2px var(--brand-glow); }
+.pe-limits { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--fg-dim); }
+.pe-limits > svg { color: var(--brand-400); vertical-align: -1px; }
+
+/* language dropdown */
+.pe-langwrap { position: relative; }
+.pe-langmenu { position: absolute; top: calc(100% + 5px); left: 4px; z-index: 30; min-width: 168px; padding: 4px; background: var(--surface-1, #0a120a); border: 1px solid var(--hairline-strong); border-radius: 9px; box-shadow: 0 14px 40px -10px rgba(0,0,0,0.7); }
+.pe-langopt { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; padding: 8px 10px; background: none; border: 0; border-radius: 6px; cursor: pointer; color: var(--fg-muted); font-size: 12.5px; }
+.pe-langopt:hover { background: rgba(84,232,23,0.06); color: var(--fg); }
+.pe-langopt.is-active { color: var(--brand-300); }
+.pe-langopt > svg { color: var(--brand-400); }
+
+/* editable code surface */
+.ceditor { display: grid; grid-template-columns: auto 1fr; overflow: hidden; background: rgba(0,0,0,0.22); }
+.ceditor-gutter { overflow: hidden; padding: 12px 10px 12px 14px; text-align: right; color: #4e6048; font-family: var(--font-mono); font-size: 13px; line-height: 1.5; user-select: none; }
+.ceditor-gutter span { display: block; }
+.ceditor-ta { resize: none; border: 0; outline: none; padding: 12px 14px; background: transparent; color: var(--fg); font-family: var(--font-mono); font-size: 13px; line-height: 1.5; tab-size: 2; white-space: pre; overflow: auto; }
+.ceditor-ta::placeholder { color: var(--fg-dim); }
+
+/* console: input / output / examples panels under the tabs */
+.pe-console { min-height: 118px; max-height: 260px; overflow: auto; border-bottom: 1px solid var(--hairline); }
+.pe-io-ta { width: 100%; min-height: 118px; resize: vertical; display: block; border: 0; outline: none; padding: 12px 14px; background: transparent; color: var(--fg); font-family: var(--font-mono); font-size: 13px; line-height: 1.5; white-space: pre; }
+.pe-io-ta::placeholder { color: var(--fg-dim); }
+.pe-out { margin: 0; padding: 12px 14px; font-family: var(--font-mono); font-size: 13px; line-height: 1.55; color: var(--fg); white-space: pre-wrap; }
+.pe-samples { display: flex; flex-direction: column; gap: 8px; padding: 8px; }
+.pe-sample { border: 1px solid var(--hairline); border-radius: 8px; overflow: hidden; }
+.pe-sample-h { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: rgba(84,232,23,0.04); border-bottom: 1px solid var(--hairline); }
+.pe-usebtn { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; background: none; border: 1px solid var(--hairline-strong); border-radius: 6px; color: var(--brand-300); font-size: 11.5px; cursor: pointer; }
+.pe-usebtn:hover { border-color: var(--border-brand); }
+.pe-sample-io { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--hairline); }
+.pe-sample-pre { margin: 0; padding: 8px 10px; background: rgba(0,0,0,0.28); font-family: var(--font-mono); font-size: 12px; line-height: 1.5; color: var(--fg); white-space: pre; overflow-x: auto; }
 
 /* ---------------- modals ---------------- */
 .pb-modal-scrim { position: fixed; inset: 0; z-index: 200; background: rgba(2,5,2,0.66); backdrop-filter: blur(3px); display: flex; align-items: flex-start; justify-content: center; padding: 60px 20px; overflow-y: auto; animation: pbFade 180ms var(--ease-out); }

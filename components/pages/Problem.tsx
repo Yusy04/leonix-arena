@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
 import { CodePane } from "@/components/code/CodePane";
+import { CodeEditor } from "@/components/code/CodeEditor";
 import { SourceModal } from "@/components/submissions/SourceModal";
 import { VerdictBadge, scoreCls } from "@/components/submissions/VerdictBadge";
 import type { Verdict, Language } from "@/lib/types";
@@ -29,7 +30,9 @@ export interface ProblemView {
   } | null;
 }
 
-const PB_BOILER = `#include <bits/stdc++.h>
+/* starter code per language + which file extensions map to which language */
+const BOILERPLATE: Record<string, string> = {
+  cpp: `#include <bits/stdc++.h>
 using namespace std;
 
 int main() {
@@ -37,7 +40,34 @@ int main() {
     cin.tie(nullptr);
 
     return 0;
-}`;
+}`,
+  python: `import sys
+
+def main():
+    data = sys.stdin.buffer.read().split()
+    # your code here
+
+main()`,
+  java: `import java.util.*;
+import java.io.*;
+
+public class Main {
+    public static void main(String[] args) throws IOException {
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        // your code here
+    }
+}`,
+};
+const EXT_TO_LANG: Record<string, string> = {
+  cpp: "cpp", cc: "cpp", cxx: "cpp", "c++": "cpp", hpp: "cpp", c: "cpp",
+  py: "python", java: "java",
+};
+function boilerplateFor(code: string): string {
+  return BOILERPLATE[code] ?? BOILERPLATE[code.toLowerCase()] ?? "";
+}
+
+type EditorLang = { code: string; name: string; timeLimitMs?: number; memoryLimitMb?: number };
+const NOT_WIRED = "The online judge isn't connected yet — this is where your program's output will appear once it is.";
 
 /* ---------- STATEMENT ---------- */
 function PbStatement({ view }: { view: ProblemView }) {
@@ -166,31 +196,124 @@ function PbSubmissions({ submissions, code, onSource }: { submissions: SubRow[];
   );
 }
 
-/* ---------- right-hand code editor (static demo) ---------- */
-function PbEditor({ languages }: { languages: { code: string; name: string }[] }) {
-  const botTabs = ["Input", "Output", "Stderr", "Compilation", "Execution", "Examples", "Submission"];
+/* ---------- right-hand code editor ---------- */
+const BOT_TABS = ["Input", "Output", "Stderr", "Compilation", "Execution", "Examples", "Submission"] as const;
+type BotTab = (typeof BOT_TABS)[number];
+
+function PbEditor({ languages, samples }: { languages: EditorLang[]; samples: ProblemView["samples"] }) {
+  const langs: EditorLang[] = languages.length ? languages : [{ code: "cpp", name: "C++17" }];
+  const [langCode, setLangCode] = useState(langs[0].code);
+  const [codeByLang, setCodeByLang] = useState<Record<string, string>>(
+    () => Object.fromEntries(langs.map(l => [l.code, boilerplateFor(l.code)])),
+  );
+  const [stdin, setStdin] = useState("");
+  const [botTab, setBotTab] = useState<BotTab>("Input");
+  const [ran, setRan] = useState(false);
   const [full, setFull] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const [shareMsg, setShareMsg] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const activeLang = langs.find(l => l.code === langCode) ?? langs[0];
+  const code = codeByLang[langCode] ?? "";
+  const setCode = (v: string) => setCodeByLang(m => ({ ...m, [langCode]: v }));
+
+  const openFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? "");
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+      const inferred = EXT_TO_LANG[ext];
+      const target = inferred && langs.some(l => l.code === inferred) ? inferred : langCode;
+      setLangCode(target);
+      setCodeByLang(m => ({ ...m, [target]: text }));
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const share = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setShareMsg("Copied!");
+      setTimeout(() => setShareMsg(""), 1500);
+    } catch { /* clipboard blocked */ }
+  };
+
+  const useSampleAsInput = (input: string) => { setStdin(input); setBotTab("Input"); };
+  const run = () => { setRan(true); setBotTab("Output"); };
+
   return (
     <div className={"pb-editor hud" + (full ? " is-full" : "")}>
       <span className="hud-corners"></span>
       <div className="pe-bar">
         <div className="pe-tools">
-          <button className="pe-tool"><Icon name="send" size={14}/> Share</button>
-          <button className="pe-tool"><Icon name="doc" size={14}/> Open file</button>
-          <button className="pe-lang">{languages[0]?.name ?? "C++"} <Icon name="chev-d" size={14}/></button>
+          <button className="pe-tool" onClick={share}><Icon name="send" size={14}/> {shareMsg || "Share"}</button>
+          <button className="pe-tool" onClick={() => fileRef.current?.click()}><Icon name="doc" size={14}/> Open file</button>
+          <input ref={fileRef} type="file" accept=".cpp,.cc,.cxx,.c,.hpp,.py,.java,.txt" hidden onChange={openFile}/>
+          <div className="pe-langwrap">
+            <button className="pe-lang" onClick={() => setLangOpen(o => !o)}>{activeLang.name} <Icon name="chev-d" size={14}/></button>
+            {langOpen && (
+              <div className="pe-langmenu" onMouseLeave={() => setLangOpen(false)}>
+                {langs.map(l => (
+                  <button key={l.code} className={"pe-langopt" + (l.code === langCode ? " is-active" : "")}
+                          onClick={() => { setLangCode(l.code); setLangOpen(false); }}>
+                    <span>{l.name}</span>
+                    {l.code === langCode && <Icon name="check" size={13}/>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <button className="pe-tool pe-full" onClick={() => setFull(f => !f)}><Icon name={full ? "close" : "grid"} size={14}/> {full ? "Exit fullscreen" : "Fullscreen"}</button>
       </div>
-      <CodePane code={PB_BOILER} className="pe-main"/>
+
+      <CodeEditor value={code} onChange={setCode} className="pe-main" placeholder="Write your solution here…"/>
+
       <div className="pe-bottabs">
-        {botTabs.map((t, i) => <button key={t} className={"pe-bt" + (i === 0 ? " is-active" : "")}>{t}</button>)}
+        {BOT_TABS.map(t => <button key={t} className={"pe-bt" + (t === botTab ? " is-active" : "")} onClick={() => setBotTab(t)}>{t}</button>)}
       </div>
-      <div className="pe-io"><div className="pe-io-gutter">1</div></div>
+
+      <div className="pe-console">
+        {botTab === "Input" && (
+          <textarea className="pe-io-ta" value={stdin} onChange={e => setStdin(e.target.value)} spellCheck={false}
+                    placeholder="Type the standard input to run your program against…"/>
+        )}
+        {botTab === "Output" && <pre className="pe-out">{ran ? <span className="dim">{NOT_WIRED}</span> : <span className="dim">Run your program to see its output here.</span>}</pre>}
+        {botTab === "Stderr" && <pre className="pe-out"><span className="dim">Standard error appears here after a run.</span></pre>}
+        {botTab === "Compilation" && <pre className="pe-out"><span className="dim">Compiler messages appear here after a run.</span></pre>}
+        {botTab === "Execution" && <pre className="pe-out"><span className="dim">Time &amp; memory usage will appear here once the judge is connected.</span></pre>}
+        {botTab === "Examples" && (
+          <div className="pe-samples">
+            {samples.length === 0 && <span className="dim t-sm" style={{ padding: 12 }}>This problem has no worked examples.</span>}
+            {samples.map(s => (
+              <div key={s.index} className="pe-sample">
+                <div className="pe-sample-h">
+                  <span className="mono dim">Example {s.index}</span>
+                  <button className="pe-usebtn" onClick={() => useSampleAsInput(s.input)}><Icon name="arrow-r" size={12}/> Use as input</button>
+                </div>
+                <div className="pe-sample-io">
+                  <pre className="pe-sample-pre">{s.input}</pre>
+                  <pre className="pe-sample-pre">{s.output}</pre>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {botTab === "Submission" && <pre className="pe-out"><span className="dim">Submitting isn&apos;t wired up yet — your verdict and per-test results will show here.</span></pre>}
+      </div>
+
       <div className="pe-foot">
-        <button className="pe-exec"><Icon name="chev-d" size={14} className="exec-chev"/> Execution Details</button>
+        <span className="pe-limits mono">
+          {activeLang.timeLimitMs ? <><Icon name="clock" size={12}/> {activeLang.timeLimitMs} ms</> : null}
+          {activeLang.memoryLimitMb ? <> · <Icon name="grid" size={12}/> {activeLang.memoryLimitMb} MB</> : null}
+        </span>
         <div className="pe-actions">
-          <button className="pe-act"><Icon name="play" size={13}/> Run</button>
-          <button className="pe-act pe-submit"><Icon name="send" size={13}/> Submit</button>
+          <button className="pe-act" onClick={run}><Icon name="play" size={13}/> Run</button>
+          <button className="pe-act pe-submit" onClick={() => setBotTab("Submission")}><Icon name="send" size={13}/> Submit</button>
         </div>
       </div>
     </div>
@@ -239,7 +362,7 @@ export default function Problem({ view, submissions, canEdit, preview }: { view:
             {tab === "submissions" && <PbSubmissions submissions={submissions} code={view.code} onSource={setSrcSub}/>}
           </div>
         </div>
-        <PbEditor languages={view.limits}/>
+        <PbEditor languages={view.limits} samples={view.samples}/>
       </div>
       {srcSub && <SourceModal code={srcSub.source ?? ""} language={(srcSub.language ?? "C++17") as Language} onClose={() => setSrcSub(null)}/>}
     </div>
