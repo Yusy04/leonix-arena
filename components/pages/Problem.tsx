@@ -271,7 +271,7 @@ function PbEditor({ languages, samples }: { languages: EditorLang[]; samples: Pr
         <button className="pe-tool pe-full" onClick={() => setFull(f => !f)}><Icon name={full ? "close" : "grid"} size={14}/> {full ? "Exit fullscreen" : "Fullscreen"}</button>
       </div>
 
-      <CodeEditor value={code} onChange={setCode} className="pe-main" placeholder="Write your solution here…"/>
+      <CodeEditor value={code} onChange={setCode} language={langCode} className="pe-main" placeholder="Write your solution here…"/>
 
       <div className="pe-bottabs">
         {BOT_TABS.map(t => <button key={t} className={"pe-bt" + (t === botTab ? " is-active" : "")} onClick={() => setBotTab(t)}>{t}</button>)}

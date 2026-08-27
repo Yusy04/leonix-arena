@@ -210,12 +210,11 @@
 .pe-langopt.is-active { color: var(--brand-300); }
 .pe-langopt > svg { color: var(--brand-400); }
 
-/* editable code surface */
-.ceditor { display: grid; grid-template-columns: auto 1fr; overflow: hidden; background: rgba(0,0,0,0.22); }
-.ceditor-gutter { overflow: hidden; padding: 12px 10px 12px 14px; text-align: right; color: #4e6048; font-family: var(--font-mono); font-size: 13px; line-height: 1.5; user-select: none; }
-.ceditor-gutter span { display: block; }
-.ceditor-ta { resize: none; border: 0; outline: none; padding: 12px 14px; background: transparent; color: var(--fg); font-family: var(--font-mono); font-size: 13px; line-height: 1.5; tab-size: 2; white-space: pre; overflow: auto; }
-.ceditor-ta::placeholder { color: var(--fg-dim); }
+/* editable code surface (CodeMirror) */
+.ceditor { display: flex; flex-direction: column; min-height: 0; overflow: hidden; background: rgba(0,0,0,0.22); }
+.ceditor .cm-editor { height: 100%; background: transparent; }
+.ceditor .cm-scroller { overflow: auto; }
+.ceditor .cm-gutters { border-right: 1px solid var(--hairline); }
 
 /* console: input / output / examples panels under the tabs */
 .pe-console { min-height: 118px; max-height: 260px; overflow: auto; border-bottom: 1px solid var(--hairline); }
