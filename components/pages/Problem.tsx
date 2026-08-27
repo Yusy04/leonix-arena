@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui";
 import { CodePane } from "@/components/code/CodePane";
@@ -217,6 +217,14 @@ function PbEditor({ languages, samples }: { languages: EditorLang[]; samples: Pr
   const activeLang = langs.find(l => l.code === langCode) ?? langs[0];
   const code = codeByLang[langCode] ?? "";
   const setCode = (v: string) => setCodeByLang(m => ({ ...m, [langCode]: v }));
+
+  // In fullscreen, Esc exits. Capture phase so CodeMirror can't swallow the key.
+  useEffect(() => {
+    if (!full) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { e.preventDefault(); setFull(false); } };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [full]);
 
   const openFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
